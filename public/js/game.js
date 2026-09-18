@@ -18,7 +18,7 @@
   // Tenor embeds are the default meme source. Local media can still override
   // an entry later by changing its media object to image/video/audio.
   const MEMES = [
-    { language: 'ಕನ್ನಡ', emoji: '😏', caption: 'ಸರಿ… ನೋಡೋಣ!', detail: 'Pawn sent home.', audio: '/memes/audio/capture-ranganna.mp3', media: { type: 'tenor', postId: '20246542', aspectRatio: '1.53846', href: 'https://tenor.com/view/kannada-rachita-ram-gifs-gif-20246542', label: 'Kannada Rachita GIF' } },
+    { language: 'ಕನ್ನಡ', emoji: '😏', caption: 'ಸರಿ… ನೋಡೋಣ!', detail: 'Pawn sent home.', media: { type: 'tenor', postId: '20246542', aspectRatio: '1.53846', href: 'https://tenor.com/view/kannada-rachita-ram-gifs-gif-20246542', label: 'Kannada Rachita GIF' } },
     { language: 'ಕನ್ನಡ', emoji: '🤷', caption: 'ಯಾಕೆ? ಏನಾಯ್ತು?', detail: 'ಒಂದು roll… full damage.', media: { type: 'tenor', postId: '8891559540113239220', aspectRatio: '1.55625', href: 'https://tenor.com/view/yake-why-saikumar-sai-kumar-gif-8891559540113239220', label: 'Yake Why GIF' } },
     { language: 'ಕನ್ನಡ', emoji: '😈', caption: 'ಮನೆಗೆ ಕಳಿಸಿದ್ದು ನಾನೇ!', detail: 'Board mele drama ಜಾಸ್ತಿ.', media: { type: 'tenor', postId: '1495082648885455520', aspectRatio: '1.75352', href: 'https://tenor.com/view/mischievous-mischief-naughty-boy-naughty-thu-gif-1495082648885455520', label: 'Mischievous GIF' } },
     { language: 'ಕನ್ನಡ', emoji: '🙏', caption: 'ನಮಸ್ಕಾರ… ಮತ್ತೆ ಬನ್ನಿ!', detail: 'Pawn has left the board.', media: { type: 'tenor', postId: '1045998005965358311', aspectRatio: '1', href: 'https://tenor.com/view/namaskara-hayavadana-jaggesh-raghavendra-stores-namaste-gif-1045998005965358311', label: 'Namaskara Sticker' } },
@@ -26,7 +26,12 @@
     { language: 'ಕನ್ನಡ', emoji: '😎', caption: 'Style ಇತ್ತು… ಈಗ ಮನೆ!', detail: 'Jaggesh-level exit.', media: { type: 'tenor', postId: '10991402', aspectRatio: '1.74265', href: 'https://tenor.com/view/jaggesh-gif-10991402', label: 'Jaggesh GIF' } },
     { language: 'ಕನ್ನಡ', emoji: '😶', caption: 'ಮಾತೇ ಇಲ್ಲ…', detail: 'That capture hurt.', media: { type: 'tenor', postId: '6971545912784955005', aspectRatio: '1.26087', href: 'https://tenor.com/view/no-words-duniya-vijay-wwr-namskara-maathe-illa-gif-6971545912784955005', label: 'No Words GIF' } },
     { language: 'ಕನ್ನಡ', emoji: '😭', caption: 'ಇವತ್ತು luck off-duty.', detail: 'Pawn sent home with emotions.', media: { type: 'tenor', postId: '19859659', aspectRatio: '1.53846', href: 'https://tenor.com/view/kannada-darshan-dboss-emotional-gif-19859659', label: 'Kannada Darshan GIF' } },
-    { language: 'ತುಳು', emoji: '😂', caption: 'ಅಯ್ಯೋ, ಎಂಚಿನ ಆಟ ಇದು!', detail: 'Tulu reaction unlocked.', media: { type: 'tenor', postId: '18545202', aspectRatio: '1.30612', href: 'https://tenor.com/view/tulu-funny-as-hell-gif-18545202', label: 'Tulu Funny GIF' } }
+    { language: 'ತುಳು', emoji: '😂', caption: 'ಅಯ್ಯೋ, ಎಂಚಿನ ಆಟ ಇದು!', detail: 'Tulu reaction unlocked.', media: { type: 'tenor', postId: '18545202', aspectRatio: '1.30612', href: 'https://tenor.com/view/tulu-funny-as-hell-gif-18545202', label: 'Tulu Funny GIF' } },
+    { language: 'ಕನ್ನಡ', emoji: '💃', caption: 'ಶೋಬರಾಜ್ entry ಆಯ್ತು!', detail: 'Dance reaction unlocked.', media: { type: 'tenor', postId: '14532058', aspectRatio: '1.04918', href: 'https://tenor.com/view/shobraj-shobraj-dance-kannada-dance-gif-14532058', label: 'Shobraj Dance GIF' } },
+    { language: 'ಕನ್ನಡ / ತೆಲುಗು', emoji: '😎', caption: 'Mass entry ಆಯ್ತು!', detail: 'Full mass reaction.', media: { type: 'tenor', postId: '18894487', aspectRatio: '1.77778', href: 'https://tenor.com/view/nandamuri-balakrishna-vipin-ayilam-telugu-kannada-funny-gif-18894487', label: 'Mass Reaction GIF' } },
+    { language: 'ಕನ್ನಡ', emoji: '🔊', caption: 'ಅಪ್ಪಾ… ಏನಿದು!', detail: 'Ranganna audio reaction.', audio: '/memes/audio/capture-ranganna.mp3', media: { type: 'audio', src: '/memes/audio/capture-ranganna.mp3', label: 'Ranganna audio reaction' } },
+    { language: 'ಕನ್ನಡ', emoji: '🤐', caption: 'ನಾವು ಬಾಯಿ ಮುಚ್ಕೊಂಡಿದೀವಿ!', detail: 'Silent reaction audio.', audio: '/memes/audio/naavu-bayi-muchkond-idivi.mp3', media: { type: 'audio', src: '/memes/audio/naavu-bayi-muchkond-idivi.mp3', label: 'Naavu bayi muchkond idivi audio' } },
+    { language: 'ಕನ್ನಡ', emoji: '🎙️', caption: 'ಪ್ರದೀಪ್ ಈಶ್ವರ reaction!', detail: 'Pradeep Eshwar audio reaction.', audio: '/memes/audio/pradeep-eshwar.mp3', media: { type: 'audio', src: '/memes/audio/pradeep-eshwar.mp3', label: 'Pradeep Eshwar audio' } }
   ];
 
   const PATH = [
@@ -693,7 +698,7 @@
         '<span class="meme-choice-pin">📌 ' + String(index + 1).padStart(2, '0') + '</span>' +
         '<span class="meme-choice-emoji">' + meme.emoji + '</span>' +
         '<span class="meme-choice-caption">' + meme.caption + '</span>' +
-        '<small>' + meme.language + (meme.audio ? ' · audio' : ' · Tenor') + '</small>' +
+        '<small>' + meme.language + (meme.media && meme.media.type === 'audio' ? ' · audio' : ' · Tenor') + '</small>' +
       '</button>'
     ).join('');
     grid.querySelectorAll('.meme-choice').forEach(button => {
@@ -727,8 +732,9 @@
     if (empty) empty.remove();
     const item = document.createElement('div');
     item.className = 'meme-feed-item';
+    const kind = meme.media && meme.media.type === 'audio' ? ' 🔊' : '';
     item.innerHTML = '<span class="meme-feed-emoji">' + meme.emoji + '</span>' +
-      '<span><strong>' + post.playerName + '</strong><small>' + meme.caption + '</small></span>';
+      '<span><strong>' + post.playerName + '</strong><small>' + meme.caption + kind + '</small></span>';
     feed.prepend(item);
     while (feed.children.length > 3) feed.lastElementChild.remove();
     const count = byId('memePostCount');
