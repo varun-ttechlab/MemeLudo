@@ -1,7 +1,8 @@
 (function () {
   'use strict';
 
-  const socket = io();
+  const openedFromFile = window.location.protocol === 'file:';
+  const socket = !openedFromFile && typeof io === 'function' ? io() : null;
   const COLORS = ['red', 'blue', 'yellow', 'green'];
   const COLOR_MAP = {
     red: '#FF3333', blue: '#3366FF', yellow: '#FFD700', green: '#33FF33'
@@ -12,6 +13,15 @@
   };
   const PLAYER_START = { red: 0, blue: 13, yellow: 26, green: 39 };
   const SAFE_POSITIONS = [0, 13, 26, 39];
+
+  // Keep the game playable without external media. Each entry can later point
+  // to a locally hosted image, audio clip, or short video for the same moment.
+  const MEMES = [
+    { language: 'ಕನ್ನಡ', emoji: '🏠', caption: 'ಅಯ್ಯೋ! ಮನೆಗೆ ವಾಪಸ್!', detail: 'Pawn sent home. Crowd: ಶಾಕ್!' },
+    { language: 'ಕನ್ನಡ', emoji: '😭', caption: 'ಇದು ಯಾವ ನ್ಯಾಯ?', detail: 'ಒಂದು roll… full damage.' },
+    { language: 'ಕನ್ನಡ / Tulu', emoji: '😂', caption: 'ಮನೆಗೆ ಹೋಗು ಮಗಾ!', detail: 'Board mele drama ಜಾಸ್ತಿ.' },
+    { language: 'ಕನ್ನಡ', emoji: '📢', caption: 'Breaking news: pawn gone!', detail: 'ಇವತ್ತು luck off-duty.' }
+  ];
 
   const PATH = [
     [6, 0], [6, 1], [6, 2], [6, 3], [6, 4], [6, 5],
@@ -52,7 +62,7 @@
   let canvas, ctx, CELL, BOARD_PX;
 
   let state = {
-    roomId: null, playerColor: null, players: [], hostId: null,
+    roomId: null, networkUrl: null, playerColor: null, players: [], hostId: null,
     tokens: { red: [-1, -1, -1, -1], blue: [-1, -1, -1, -1], yellow: [-1, -1, -1, -1], green: [-1, -1, -1, -1] },
     finished: { red: 0, blue: 0, yellow: 0, green: 0 },
     turnOrder: [], currentTurnName: null,
@@ -81,6 +91,7 @@
     bindUI();
     bindSocket();
     updateServerInfo();
+    if (!socket) showServerWarning();
     setInterval(refreshRoomList, 5000);
     var pni = document.getElementById('playerName');
     if (pni) { pni.focus(); }
@@ -111,6 +122,7 @@
 
     var data = readSession();
     if (!data) { clearSession(); return; }
+    if (!socket) { clearSession(); return; }
 
     console.log('Attempting to reconnect to room ' + data.roomId);
     byId('reconnectStatus').textContent = 'Reconnecting to ' + data.roomId + '...';
@@ -133,6 +145,7 @@
     reconnectSucceeded();
     clearSession();
     state.roomId = null;
+    state.networkUrl = null;
     state.phase = 'idle';
     if (msg) toast(msg);
     show('screen-lobby');
@@ -149,9 +162,19 @@
 
   function updateServerInfo() {
     const el = document.getElementById('serverInfo');
-    if (el) el.textContent = window.location.hostname + ':' + window.location.port;
+    if (el) {
+      const current = openedFromFile ? 'Opened as a local file' : window.location.hostname + ':' + window.location.port;
+      el.textContent = state.networkUrl ? 'Friends join at ' + state.networkUrl : current;
+    }
     const na = document.getElementById('networkAddress');
-    if (na) na.textContent = window.location.hostname + ':' + window.location.port;
+    if (na) na.textContent = openedFromFile ? 'start the game server first' : (state.networkUrl || window.location.hostname + ':' + window.location.port);
+  }
+
+  function showServerWarning() {
+    const warning = byId('serverWarning');
+    if (!warning) return;
+    warning.hidden = false;
+    warning.textContent = 'Rooms need the game server. Start server.js, then open http://localhost:3000 instead of this local file.';
   }
 
   function bindUI() {
@@ -212,12 +235,14 @@
   }
 
   function createRoom() {
+    if (!socket) { toast('Start the game server and open http://localhost:3000'); return; }
     const n = byId('playerName').value.trim() || 'Player';
     myName = n;
     socket.emit('create_room', { playerName: n });
   }
 
   function joinRoom() {
+    if (!socket) { toast('Start the game server and open http://localhost:3000'); return; }
     const code = byId('roomCodeInput').value.trim().toUpperCase();
     if (!code) { toast('Enter a room code'); return; }
     myName = byId('playerName').value.trim() || 'Player';
@@ -262,6 +287,7 @@
     show('screen-lobby');
     state.phase = 'idle';
     state.roomId = null;
+    state.networkUrl = null;
     state.gameOver = false;
     byId('joinSection').style.display = 'none';
     byId('roomList').style.display = 'none';
@@ -284,6 +310,7 @@
     show('screen-lobby');
     state.phase = 'idle';
     state.roomId = null;
+    state.networkUrl = null;
     state.gameOver = false;
     byId('joinSection').style.display = 'none';
     byId('roomList').style.display = 'none';
@@ -292,15 +319,16 @@
   }
 
   function refreshRoomList() {
-    if (byId('screen-lobby').classList.contains('active') && socket.connected) {
+    if (socket && byId('screen-lobby').classList.contains('active') && socket.connected) {
       socket.emit('list_rooms');
     }
   }
 
   function bindSocket() {
+    if (!socket) return;
     socket.on('room_created', d => {
       reconnectSucceeded();
-      state.roomId = d.roomId; state.playerColor = d.playerColor;
+      state.roomId = d.roomId; state.networkUrl = d.networkUrl || null; state.playerColor = d.playerColor;
       state.players = d.players; state.hostId = d.hostId;
       if (d.sessionToken) saveSession(d.sessionToken, d.roomId);
       showWaiting();
@@ -308,7 +336,7 @@
 
     socket.on('room_joined', d => {
       reconnectSucceeded();
-      state.roomId = d.roomId; state.playerColor = d.playerColor;
+      state.roomId = d.roomId; state.networkUrl = d.networkUrl || null; state.playerColor = d.playerColor;
       state.players = d.players; state.hostId = d.hostId;
       if (d.sessionToken) saveSession(d.sessionToken, d.roomId);
       showWaiting();
@@ -341,6 +369,7 @@
       document.title = originalTitle;
       state.phase = 'idle';
       state.roomId = null;
+      state.networkUrl = null;
       state.gameOver = false;
       byId('joinSection').style.display = 'none';
       byId('roomList').style.display = 'none';
@@ -377,6 +406,7 @@
       if (d.type !== 'full_state') return;
       reconnectSucceeded();
       state.roomId = d.roomId;
+      state.networkUrl = d.networkUrl || null;
       state.playerColor = d.playerColor;
       state.players = d.players;
       state.hostId = d.hostId;
@@ -488,7 +518,10 @@
       if (p) {
         state.tokens[p.color] = d.tokens;
         state.finished[p.color] = d.finished;
-        if (d.captured) toast('Token captured!');
+        if (d.captured) {
+          toast('Pawn sent home — meme moment!');
+          showMemeMoment(d.capture);
+        }
       }
       updatePanels();
       draw();
@@ -631,6 +664,34 @@
     byId('btnStartGame').style.display = isHost && count >= 2 && count < 4 ? 'inline-block' : 'none';
   }
 
+  function showMemeMoment(capture) {
+    const meme = MEMES[(capture && Number.isInteger(capture.memeId) ? capture.memeId : Date.now()) % MEMES.length];
+    const victims = capture && capture.victims ? capture.victims.map(v => v.playerName).join(', ') : 'A pawn';
+    const card = byId('memeMoment');
+    byId('memeLanguage').textContent = meme.language;
+    byId('memeEmoji').textContent = meme.emoji;
+    byId('memeCaption').textContent = meme.caption;
+    byId('memeAttribution').textContent = victims + ' got sent home · ' + meme.detail;
+
+    const media = byId('memeMedia');
+    media.innerHTML = '';
+    if (meme.media) {
+      const el = document.createElement(meme.media.type === 'video' ? 'video' : 'audio');
+      el.src = meme.media.src;
+      el.controls = true;
+      if (meme.media.type === 'video') { el.muted = true; el.playsInline = true; }
+      media.appendChild(el);
+    }
+    card.classList.remove('show');
+    card.setAttribute('aria-hidden', 'false');
+    requestAnimationFrame(() => card.classList.add('show'));
+    clearTimeout(showMemeMoment.hideTimer);
+    showMemeMoment.hideTimer = setTimeout(function() {
+      card.classList.remove('show');
+      card.setAttribute('aria-hidden', 'true');
+    }, 5200);
+  }
+
   function showWaiting() {
     show('screen-waiting');
     byId('roomCodeDisplay').textContent = state.roomId;
@@ -655,7 +716,15 @@
     const connected = state.players.filter(p => p.connected !== false).length;
     byId('btnEndRoom').style.display = state.hostId === socket.id ? 'inline-block' : 'none';
     updateStartButton();
-    byId('waitingStatus').textContent = cnt < 4 ? 'Waiting for players... (' + connected + '/' + cnt + ' connected)' : 'Starting game...';
+    if (cnt >= 4) {
+      byId('waitingStatus').textContent = 'All seats filled — starting game...';
+    } else if (state.hostId === socket.id && cnt >= 2) {
+      byId('waitingStatus').textContent = 'Room ready — start the game for ' + cnt + ' players.';
+    } else if (cnt < 2) {
+      byId('waitingStatus').textContent = 'Waiting for at least one friend to join...';
+    } else {
+      byId('waitingStatus').textContent = 'Waiting for the host to start... (' + connected + '/' + cnt + ' connected)';
+    }
   }
 
   function updateMyTurn() {
@@ -748,9 +817,9 @@
   }
 
   function drawBackground() {
-    ctx.fillStyle = '#0d0d24';
+    ctx.fillStyle = '#1b1026';
     ctx.fillRect(0, 0, BOARD_PX, BOARD_PX);
-    ctx.strokeStyle = 'rgba(255,215,0,0.12)';
+    ctx.strokeStyle = 'rgba(255,184,74,0.18)';
     ctx.lineWidth = 2;
     ctx.strokeRect(1, 1, BOARD_PX - 2, BOARD_PX - 2);
   }
@@ -780,25 +849,25 @@
 
   function drawCenter() {
     const cx = 7 * CELL + CELL / 2, cy = 7 * CELL + CELL / 2;
-    ctx.shadowColor = 'rgba(255,215,0,0.3)';
+    ctx.shadowColor = 'rgba(255,184,74,0.36)';
     ctx.shadowBlur = 25;
-    ctx.fillStyle = 'rgba(255,215,0,0.05)';
+    ctx.fillStyle = 'rgba(255,184,74,0.08)';
     ctx.beginPath();
     ctx.arc(cx, cy, CELL * 1.3, 0, Math.PI * 2);
     ctx.fill();
     ctx.shadowBlur = 0;
 
-    ctx.strokeStyle = 'rgba(255,215,0,0.15)';
+    ctx.strokeStyle = 'rgba(255,184,74,0.2)';
     ctx.lineWidth = 1.5;
     ctx.beginPath();
     ctx.arc(cx, cy, CELL * 1.1, 0, Math.PI * 2);
     ctx.stroke();
 
-    ctx.fillStyle = 'rgba(255,215,0,0.15)';
+    ctx.fillStyle = 'rgba(255,184,74,0.2)';
     ctx.font = CELL * 0.7 + 'px Consolas, monospace';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('\u2605', cx, cy);
+    ctx.fillText('😂', cx, cy);
   }
 
   function drawPath() {
@@ -812,10 +881,10 @@
         ctx.shadowColor = COLOR_MAP[COLORS[startIdx]];
         ctx.shadowBlur = 6;
       } else if (isSafe) {
-        ctx.fillStyle = 'rgba(255,215,0,0.12)';
+        ctx.fillStyle = 'rgba(255,184,74,0.14)';
         ctx.shadowBlur = 0;
       } else {
-        ctx.fillStyle = 'rgba(200,190,170,0.06)';
+        ctx.fillStyle = 'rgba(255,255,255,0.07)';
         ctx.shadowBlur = 0;
       }
       ctx.fillRect(c * CELL + 1, r * CELL + 1, CELL - 2, CELL - 2);

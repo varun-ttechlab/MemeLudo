@@ -34,7 +34,7 @@ async function testPageLoads() {
   console.log('\n=== Testing Page Loads ===');
   const r = await httpGet('/');
   assert(r.status === 200, 'index.html returns 200');
-  assert(r.body.includes('STAR WARS'), 'Page contains Star Wars Ludo title');
+  assert(r.body.includes('MEME'), 'Page contains Meme Ludo title');
   assert(r.body.includes('playerName'), 'Page has playerName input');
   assert(r.body.includes('roomCodeInput'), 'Page has roomCodeInput input');
   assert(r.body.includes('btnCreateRoom'), 'Page has Create Room button');
@@ -88,7 +88,7 @@ async function testGameFlow() {
   sockets[0].emit('create_room', { playerName: 'Player1' });
   const roomData = await roomPromise;
   assert(!!roomData.roomId, 'Room ID generated');
-  assert(roomData.roomId.startsWith('SW'), 'Room ID starts with SW');
+  assert(roomData.roomId.startsWith('ML'), 'Room ID starts with ML');
   assert(results[0].color === 'red', 'Host gets red color');
   assert(roomData.players.length === 1, 'Room has 1 player initially');
 
@@ -218,6 +218,7 @@ async function testGameFlow() {
       console.log(`  Token ${tokIdx} moved! New pos: ${md.newPos}, finished: ${md.finished}`);
       assert(md.playerName === PLAYER_NAMES[playerIdx], 'Token move attributed to correct player');
       assert(md.newPos >= 0, 'Token moved to valid position');
+      assert(Object.prototype.hasOwnProperty.call(md, 'capture'), 'Token move includes meme capture payload slot');
     } else {
       // Wait for turn change
       await sleep(1000);
@@ -265,6 +266,33 @@ async function testListRooms() {
   s.close();
 }
 
+async function testTwoPlayerManualStart() {
+  console.log('\n=== Testing 2-Player Manual Start ===');
+  const host = Client(SERVER_URL, { transports: ['websocket'], forceNew: true });
+  const guest = Client(SERVER_URL, { transports: ['websocket'], forceNew: true });
+  await sleep(300);
+
+  const room = await new Promise(resolve => {
+    host.once('room_created', resolve);
+    host.emit('create_room', { playerName: 'Host' });
+  });
+  await new Promise(resolve => {
+    guest.once('room_joined', resolve);
+    guest.emit('join_room', { roomId: room.roomId, playerName: 'Guest' });
+  });
+
+  const starts = [0, 1].map((_, i) => new Promise(resolve => {
+    (i === 0 ? host : guest).once('game_start', resolve);
+  }));
+  host.emit('start_game', { roomId: room.roomId });
+  const startData = await Promise.race([starts[0], sleep(3000).then(() => null)]);
+  assert(!!startData, 'Host can manually start a 2-player room');
+  assert(startData && startData.turnOrder.length === 2, 'Manual start preserves both players');
+  await Promise.race([starts[1], sleep(3000)]);
+  host.close();
+  guest.close();
+}
+
 async function testSessionReconnection() {
   console.log('\n=== Testing Session Reconnection ===');
 
@@ -276,7 +304,7 @@ async function testSessionReconnection() {
     s1.emit('create_room', { playerName: 'ReconnectTest' });
   });
   assert(!!roomCreated.sessionToken, 'Session token received on room creation');
-  assert(roomCreated.roomId.startsWith('SW'), 'Room ID generated');
+  assert(roomCreated.roomId.startsWith('ML'), 'Room ID generated');
 
   console.log(`  Room: ${roomCreated.roomId}, Session: ${roomCreated.sessionToken.substring(0,12)}...`);
 
@@ -433,14 +461,14 @@ async function testErrorHandling() {
       resolve(data);
     });
   });
-  s.emit('join_room', { roomId: 'SW0000', playerName: 'Test' });
+  s.emit('join_room', { roomId: 'ML0000', playerName: 'Test' });
   const err = await errorPromise;
   assert(!!err.message, 'Error message returned for invalid room');
   s.close();
 }
 
 async function main() {
-  console.log('Star Wars Ludo - Test Suite');
+  console.log('Meme Ludo - Test Suite');
   console.log('==========================\n');
   console.log(`Server: ${SERVER_URL}`);
 
@@ -455,6 +483,8 @@ async function main() {
     await testErrorHandling();
     await sleep(300);
     await testListRooms();
+    await sleep(300);
+    await testTwoPlayerManualStart();
     await sleep(300);
     await testGameFlow();
     await sleep(500);

@@ -1,5 +1,5 @@
 @echo off
-title Star Wars Ludo Server
+title Meme Ludo Server
 cd /d "%~dp0"
 
 :: Try node from PATH first, fallback to full path

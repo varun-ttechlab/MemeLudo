@@ -1,7 +1,7 @@
 {
-  "name": "ludo-starwars",
+  "name": "meme-ludo",
   "version": "1.0.0",
-  "description": "LAN Ludo game with Star Wars theme",
+  "description": "A local-network meme-themed Ludo party game",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

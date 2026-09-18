@@ -118,6 +118,7 @@ function sendFullState(socket, room, player) {
   const state = {
     type: 'full_state',
     roomId: room.id,
+    networkUrl: getNetworkUrl(),
     playerColor: player.color,
     players: playerList,
     hostId: room.hostId,
@@ -160,17 +161,31 @@ function cryptoDie() {
 }
 
 function generateRoomCode() {
-  return 'SW' + crypto.randomInt(1000, 9999);
+  return 'ML' + crypto.randomInt(1000, 9999);
 }
 
 function getLocalIP() {
   const nets = os.networkInterfaces();
+  const candidates = [];
   for (const name of Object.keys(nets)) {
-    for (const net of nets[name]) {
-      if (net.family === 'IPv4' && !net.internal) return net.address;
+    for (const net of nets[name] || []) {
+      if (net.family === 'IPv4' && !net.internal) candidates.push({ name, address: net.address });
     }
   }
-  return '127.0.0.1';
+  const physical = candidates.find(({ name }) =>
+    /wi-?fi|wireless|ethernet/i.test(name) &&
+    !/vpn|virtual|openvpn|tap|tun|docker|wsl|hyper-v|vethernet/i.test(name)
+  );
+  return (physical || candidates.find(({ address }) =>
+    /^(10\.|192\.168\.|172\.(1[6-9]|2\d|3[0-1])\.)/.test(address)
+  ) || candidates[0] || { address: '127.0.0.1' }).address;
+}
+
+function getNetworkUrl() {
+  const publicUrl = process.env.PUBLIC_URL || process.env.RENDER_EXTERNAL_URL;
+  if (publicUrl) return publicUrl.replace(/\/$/, '');
+  const port = process.env.PORT || 3000;
+  return `http://${getLocalIP()}:${port}`;
 }
 
 function createInitialState() {
@@ -216,7 +231,14 @@ function applyMove(room, playerId, tokenIdx, diceValue) {
     for (const cap of captured) {
       room.players[cap.playerId].tokens[cap.tokenIndex] = -1;
     }
-    return { captured: captured.length > 0 };
+    return {
+      captured: captured.length > 0,
+      capturedPlayers: captured.map(cap => ({
+        playerId: cap.playerId,
+        playerName: room.players[cap.playerId]?.name || 'A player',
+        playerColor: room.players[cap.playerId]?.color || null
+      }))
+    };
   }
 
   const newPos = player.tokens[tokenIdx] + diceValue;
@@ -228,6 +250,7 @@ function applyMove(room, playerId, tokenIdx, diceValue) {
   }
 
   let captured = false;
+  const capturedPlayers = [];
   const tPos = player.tokens[tokenIdx];
   if (tPos >= 0 && tPos <= 51) {
     const globalPos = (PLAYER_START[player.color] + tPos) % 52;
@@ -241,11 +264,16 @@ function applyMove(room, playerId, tokenIdx, diceValue) {
       if (capTokenCount === 1) {
         capPlayer.tokens[cap.tokenIndex] = -1;
         captured = true;
+        capturedPlayers.push({
+          playerId: cap.playerId,
+          playerName: capPlayer.name,
+          playerColor: capPlayer.color
+        });
       }
     }
   }
 
-  return { captured };
+  return { captured, capturedPlayers };
 }
 
 io.on('connection', (socket) => {
@@ -267,6 +295,7 @@ io.on('connection', (socket) => {
       phase: 'lobby',
       started: false,
       winner: null,
+      memeIndex: 0,
       hostId: socket.id
     };
     const room = rooms[roomId];
@@ -280,7 +309,7 @@ io.on('connection', (socket) => {
     room.turnOrder = [socket.id];
     socket.join(roomId);
     socket.emit('room_created', {
-      roomId, players: [{ id: socket.id, name: playerName || 'Player 1', color: 'red' }],
+      roomId, networkUrl: getNetworkUrl(), players: [{ id: socket.id, name: playerName || 'Player 1', color: 'red' }],
       playerColor: 'red', hostId: socket.id, sessionToken
     });
     console.log(`Room ${roomId} created by ${playerName}`);
@@ -320,7 +349,7 @@ io.on('connection', (socket) => {
     }));
 
     io.to(roomId).emit('player_joined', { players: playerList, playerColor: color });
-    socket.emit('room_joined', { roomId, players: playerList, playerColor: color, hostId: room.hostId, sessionToken });
+    socket.emit('room_joined', { roomId, networkUrl: getNetworkUrl(), players: playerList, playerColor: color, hostId: room.hostId, sessionToken });
 
     if (Object.keys(room.players).length === 4) {
       room.started = true;
@@ -391,7 +420,14 @@ io.on('connection', (socket) => {
       newPos: player.tokens[tokenIndex],
       tokens: [...player.tokens],
       finished: player.finished,
-      captured: result.captured
+      captured: result.captured,
+      capture: result.captured ? {
+        byPlayerId: socket.id,
+        byPlayerName: player.name,
+        byPlayerColor: player.color,
+        victims: result.capturedPlayers,
+        memeId: room.memeIndex++
+      } : null
     });
 
     clearTurnTimer(room);
@@ -433,6 +469,7 @@ io.on('connection', (socket) => {
     room.phase = 'rolling';
     room.started = true;
     room.winner = null;
+    room.memeIndex = 0;
     room.turnOrder = buildTurnOrder(room);
     io.to(roomId).emit('game_restarted', {
       turnOrder: room.turnOrder.map(sid => room.players[sid].name),
@@ -447,7 +484,9 @@ io.on('connection', (socket) => {
     if (!room || room.started) return;
     if (room.hostId !== socket.id) return;
     const count = Object.keys(room.players).length;
-    if (count < 2) return;
+    if (count < 2) {
+      return socket.emit('error', { message: 'Invite at least one friend before starting.' });
+    }
 
     room.started = true;
     room.phase = 'rolling';
@@ -667,10 +706,11 @@ const PORT = process.env.PORT || 3000;
 server.listen(PORT, '0.0.0.0', () => {
   const ip = getLocalIP();
   console.log('');
-  console.log('  Star Wars Ludo Server');
+  console.log('  Meme Ludo Server');
   console.log('  ' + '='.repeat(30));
   console.log(`  Local:   http://localhost:${PORT}`);
   console.log(`  Network: http://${ip}:${PORT}`);
+  console.log(`  Share:   ${getNetworkUrl()}`);
   console.log('  ' + '='.repeat(30));
   console.log('');
 });

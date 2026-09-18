@@ -1,16 +1,16 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --gold: #FFD700;
-  --gold-dim: #B8960F;
-  --cyan: #00E5FF;
-  --dark: #0a0a1a;
-  --dark2: #12122a;
-  --panel-bg: rgba(18, 18, 42, 0.9);
-  --red-saber: #FF3333;
-  --blue-saber: #3366FF;
-  --yellow-saber: #FFD700;
-  --green-saber: #33FF33;
+  --gold: #FFB84A;
+  --gold-dim: #F07C41;
+  --cyan: #66F2C5;
+  --dark: #120D1A;
+  --dark2: #24122B;
+  --panel-bg: rgba(37, 24, 51, 0.92);
+  --red-saber: #FF6B6B;
+  --blue-saber: #8C7BFF;
+  --yellow-saber: #FFD166;
+  --green-saber: #66E3A4;
   --font-display: 'Segoe UI', 'Arial', sans-serif;
   --font-mono: 'Consolas', 'Courier New', monospace;
 }
@@ -32,20 +32,12 @@ body {
   position: fixed; top: 0; left: 0; width: 100%; height: 100%;
   z-index: 0; pointer-events: none;
   background:
-    radial-gradient(1.5px 1.5px at 20px 30px, #eee, transparent),
-    radial-gradient(1.5px 1.5px at 40px 70px, rgba(255,255,255,0.8), transparent),
-    radial-gradient(1px 1px at 90px 40px, #fff, transparent),
-    radial-gradient(1px 1px at 130px 80px, rgba(255,255,255,0.6), transparent),
-    radial-gradient(1.5px 1.5px at 160px 30px, #ddd, transparent),
-    radial-gradient(1px 1px at 200px 60px, #fff, transparent),
-    radial-gradient(1.5px 1.5px at 250px 90px, rgba(255,255,255,0.7), transparent),
-    radial-gradient(1px 1px at 300px 20px, #eee, transparent),
-    radial-gradient(1.5px 1.5px at 350px 70px, #fff, transparent),
-    radial-gradient(1px 1px at 400px 50px, rgba(255,255,255,0.5), transparent),
-    radial-gradient(1px 1px at 500px 30px, #fff, transparent),
-    radial-gradient(1.5px 1.5px at 600px 80px, rgba(255,255,255,0.7), transparent),
-    radial-gradient(1px 1px at 700px 50px, #eee, transparent);
-  background-size: 700px 100px;
+    radial-gradient(circle at 12% 18%, rgba(255,184,74,0.18) 0 2px, transparent 3px),
+    radial-gradient(circle at 78% 20%, rgba(102,242,197,0.16) 0 3px, transparent 4px),
+    radial-gradient(circle at 28% 76%, rgba(255,107,107,0.16) 0 2px, transparent 3px),
+    radial-gradient(circle at 88% 82%, rgba(140,123,255,0.18) 0 3px, transparent 4px),
+    linear-gradient(135deg, #120D1A 0%, #24122B 55%, #15102B 100%);
+  background-size: 220px 180px, 280px 220px, 260px 200px, 320px 260px, cover;
   animation: twinkle 6s ease-in-out infinite alternate;
 }
 
@@ -192,6 +184,11 @@ body {
 .room-entry .room-count { font-size: 0.75rem; color: #888; }
 
 .server-info { margin-top: 1rem; font-size: 0.75rem; color: #555; text-align: center; }
+.server-warning {
+  width: 100%; max-width: 400px; margin-top: 1rem; padding: 0.75rem 0.9rem;
+  background: rgba(255, 107, 107, 0.12); border: 1px solid rgba(255, 107, 107, 0.55);
+  border-radius: 8px; color: #ffd7d7; font-size: 0.8rem; line-height: 1.45; text-align: center;
+}
 
 /* WAITING */
 #screen-waiting { justify-content: center; align-items: center; }
@@ -276,6 +273,7 @@ body {
   flex-shrink: 0;
 }
 .game-title { font-family: var(--font-mono); font-size: 0.9rem; color: var(--gold); letter-spacing: 3px; }
+.game-kicker { color: var(--cyan); font-size: 0.55rem; letter-spacing: 1px; margin-left: 0.5rem; }
 .room-info { font-size: 0.75rem; color: #888; }
 
 .game-layout {
@@ -348,6 +346,29 @@ body {
   border-top: 1px solid rgba(255,215,0,0.15);
   flex-shrink: 0;
 }
+
+.meme-moment {
+  position: absolute;
+  right: 1rem;
+  bottom: 4.8rem;
+  width: min(260px, calc(100vw - 2rem));
+  padding: 0.8rem 0.9rem;
+  background: linear-gradient(145deg, rgba(55, 28, 66, 0.98), rgba(28, 18, 42, 0.98));
+  border: 1px solid var(--gold);
+  border-radius: 14px;
+  box-shadow: 0 12px 36px rgba(0,0,0,0.4), 0 0 24px rgba(255,184,74,0.16);
+  transform: translateY(12px) scale(0.96);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 8;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+.meme-moment.show { opacity: 1; transform: translateY(0) scale(1); }
+.meme-moment-topline { display: flex; justify-content: space-between; color: var(--cyan); font: 700 0.6rem var(--font-mono); letter-spacing: 1px; }
+.meme-emoji { font-size: 2.2rem; line-height: 1; margin: 0.55rem 0 0.35rem; }
+.meme-caption { color: #fff; font-weight: 800; line-height: 1.25; }
+.meme-attribution { color: #c5b5cc; font-size: 0.7rem; margin-top: 0.35rem; }
+.meme-media audio, .meme-media video { width: 100%; margin-top: 0.6rem; border-radius: 8px; }
 
 .game-status {
   flex: 1; font-size: 0.85rem; color: var(--cyan);
@@ -472,4 +493,6 @@ body {
   .board-container { order: 1; }
   .result-title { font-size: 2.5rem; }
   .winner-name { font-size: 1.5rem; }
+  .meme-moment { right: 0.6rem; bottom: 7.5rem; width: 220px; }
+  .game-kicker { display: none; }
 }

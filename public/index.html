@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Star Wars Ludo</title>
+<title>Meme Ludo — Local Party Game</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -11,8 +11,8 @@
   <div class="starfield"></div>
   <div id="screen-lobby" class="screen active">
     <div class="lobby-content">
-      <h1 class="title">STAR WARS<br>LUDO</h1>
-      <p class="subtitle">A Galaxy Far, Far Away Awaits</p>
+      <h1 class="title">MEME<br>LUDO</h1>
+      <p class="subtitle">Dice. Drama. Full-on betrayal.</p>
       <div class="lobby-card">
         <div class="input-group">
           <label>Player Name</label>
@@ -25,11 +25,12 @@
         <div class="join-section" id="joinSection" style="display:none">
           <div class="input-group">
             <label>Room Code</label>
-            <input type="text" id="roomCodeInput" maxlength="8" placeholder="e.g. SW1234">
+            <input type="text" id="roomCodeInput" maxlength="8" placeholder="e.g. ML1234">
           </div>
           <button id="btnSubmitJoin" class="btn btn-primary">Join Game</button>
         </div>
       </div>
+      <div id="serverWarning" class="server-warning" role="status" hidden></div>
       <div id="roomList" class="room-list" style="display:none">
         <h3>Available Rooms</h3>
         <div id="roomListContainer"></div>
@@ -48,7 +49,7 @@
       </div>
       <div id="playerList" class="player-list"></div>
       <div class="share-info">
-        Share this code with friends on your network!<br>
+        Share this code with friends on your network.<br>
         They connect to <span id="networkAddress" style="color:var(--gold)">loading...</span> and enter the code.
       </div>
       <button id="btnStartGame" class="btn btn-primary" style="display:none">Start Game</button>
@@ -73,7 +74,7 @@
 
   <div id="screen-game" class="screen">
     <div class="game-header">
-      <div class="game-title">STAR WARS LUDO</div>
+      <div class="game-title">MEME LUDO <span class="game-kicker">LOCAL PARTY MODE</span></div>
       <div class="room-info">
         Room: <span id="gameRoomCode"></span>
       </div>
@@ -107,6 +108,13 @@
         </div>
       </div>
     </div>
+    <div id="memeMoment" class="meme-moment" aria-live="polite" aria-hidden="true">
+      <div class="meme-moment-topline"><span>MEME MOMENT</span><span id="memeLanguage">ಕನ್ನಡ</span></div>
+      <div id="memeEmoji" class="meme-emoji">🏠</div>
+      <div id="memeCaption" class="meme-caption">Someone just got sent home.</div>
+      <div id="memeAttribution" class="meme-attribution"></div>
+      <div id="memeMedia" class="meme-media"></div>
+    </div>
     <div class="game-footer">
       <div id="gameStatus" class="game-status">Waiting for game to start...</div>
       <div id="diceArea" class="dice-area">
@@ -127,11 +135,11 @@
 
   <div id="screen-result" class="screen">
     <div class="result-content">
-      <h1 class="result-title">VICTORY</h1>
+      <h1 class="result-title">WINNER!</h1>
       <div id="winnerDisplay" class="winner-display">
         <div id="winnerCrown" class="winner-crown">&#9733;</div>
         <div id="winnerName" class="winner-name"></div>
-        <div class="winner-subtitle">The Force is strong with this one</div>
+        <div class="winner-subtitle">Certified board legend</div>
       </div>
       <div class="btn-group" style="gap:1rem;justify-content:center">
         <button id="btnPlayAgain" class="btn btn-primary">Play Again</button>
