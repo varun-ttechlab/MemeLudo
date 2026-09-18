@@ -14,6 +14,7 @@
   const PLAYER_START = { red: 0, blue: 13, yellow: 26, green: 39 };
   // Eight classic Ludo safe squares: four coloured starts plus four star cells.
   const SAFE_POSITIONS = [0, 8, 13, 21, 26, 34, 39, 47];
+  const SIX_ROLL_AUDIO = '/memes/audio/lottery.mp3';
 
   // Tenor embeds are the default meme source. Local media can still override
   // an entry later by changing its media object to image/video/audio.
@@ -31,7 +32,8 @@
     { language: 'ಕನ್ನಡ / ತೆಲುಗು', emoji: '😎', caption: 'Mass entry ಆಯ್ತು!', detail: 'Full mass reaction.', media: { type: 'tenor', postId: '18894487', aspectRatio: '1.77778', href: 'https://tenor.com/view/nandamuri-balakrishna-vipin-ayilam-telugu-kannada-funny-gif-18894487', label: 'Mass Reaction GIF' } },
     { language: 'ಕನ್ನಡ', emoji: '🔊', caption: 'ಅಪ್ಪಾ… ಏನಿದು!', detail: 'Ranganna audio reaction.', audio: '/memes/audio/capture-ranganna.mp3', media: { type: 'audio', src: '/memes/audio/capture-ranganna.mp3', label: 'Ranganna audio reaction' } },
     { language: 'ಕನ್ನಡ', emoji: '🤐', caption: 'ನಾವು ಬಾಯಿ ಮುಚ್ಕೊಂಡಿದೀವಿ!', detail: 'Silent reaction audio.', audio: '/memes/audio/naavu-bayi-muchkond-idivi.mp3', media: { type: 'audio', src: '/memes/audio/naavu-bayi-muchkond-idivi.mp3', label: 'Naavu bayi muchkond idivi audio' } },
-    { language: 'ಕನ್ನಡ', emoji: '🎙️', caption: 'ಪ್ರದೀಪ್ ಈಶ್ವರ reaction!', detail: 'Pradeep Eshwar audio reaction.', audio: '/memes/audio/pradeep-eshwar.mp3', media: { type: 'audio', src: '/memes/audio/pradeep-eshwar.mp3', label: 'Pradeep Eshwar audio' } }
+    { language: 'ಕನ್ನಡ', emoji: '🎙️', caption: 'ಪ್ರದೀಪ್ ಈಶ್ವರ reaction!', detail: 'Pradeep Eshwar audio reaction.', audio: '/memes/audio/pradeep-eshwar.mp3', media: { type: 'audio', src: '/memes/audio/pradeep-eshwar.mp3', label: 'Pradeep Eshwar audio' } },
+    { language: 'ಕನ್ನಡ', emoji: '😨', caption: 'ಇಲ್ಲೊಂದು ಸಮಸ್ಯೆ ಖಂಡಿತ ಇದೆ!', detail: 'Nagavalli has entered the room.', media: { type: 'tenor', postId: '10479754641524431201', aspectRatio: '1.77857', href: 'https://tenor.com/view/aapthamithra-nagavalli-illondu-samasye-khandita-ide-ramachandra-acharya-avinash-gif-10479754641524431201', label: 'Aapthamithra Nagavalli GIF' } }
   ];
 
   const PATH = [
@@ -292,8 +294,6 @@
 
   function rollDice() {
     if (!state.myTurn || state.phase !== 'rolling') return;
-    byId('diceFace').classList.add('rolling');
-    setTimeout(() => byId('diceFace').classList.remove('rolling'), 500);
     socket.emit('roll_dice', { roomId: state.roomId });
   }
 
@@ -520,6 +520,10 @@
 
     socket.on('dice_rolled', d => {
       renderDice(d.diceValue);
+      if (d.diceValue === 6) {
+        playSound(SIX_ROLL_AUDIO);
+        byId('diceLog').textContent = 'Rolled a 6! Bonus turn 🎉';
+      }
       state.diceValue = d.diceValue;
       state.phase = 'moving';
       state.movableTokens = d.movableTokens || [];
@@ -929,7 +933,14 @@
     for (let r = 0; r < 3; r++)
       for (let c = 0; c < 3; c++)
         g.push('<div class="dot' + ((dots[val] || []).some(([rr, cc]) => rr === r && cc === c) ? '' : ' empty') + '"></div>');
-    byId('diceFace').innerHTML = g.join('');
+    const face = byId('diceFace');
+    face.innerHTML = g.join('');
+    face.dataset.value = String(val);
+    face.classList.remove('rolling', 'six-roll');
+    void face.offsetWidth;
+    face.classList.add('rolling');
+    if (val === 6) face.classList.add('six-roll');
+    setTimeout(() => face.classList.remove('rolling'), 700);
     byId('diceLog').textContent = 'Rolled: ' + val;
     byId('btnRollDice').style.display = 'none';
   }

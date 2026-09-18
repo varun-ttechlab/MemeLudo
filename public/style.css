@@ -469,32 +469,43 @@ body {
 .dice-container { display: flex; align-items: center; gap: 0.5rem; }
 
 .dice-face {
-  width: 50px; height: 50px;
-  background: linear-gradient(145deg, #2a2a4a, #1a1a3a);
-  border: 2px solid var(--gold);
-  border-radius: 8px;
+  width: 64px; height: 64px;
+  position: relative;
+  background: linear-gradient(145deg, #fffdf3, #ffe2a8);
+  border: 4px solid #ef6a49;
+  border-radius: 18px 14px 20px 15px;
   display: grid; grid-template-columns: 1fr 1fr 1fr; grid-template-rows: 1fr 1fr 1fr;
-  padding: 5px;
-  transition: transform 0.15s;
-  box-shadow: 0 0 15px rgba(255,215,0,0.1);
+  padding: 7px;
+  transform: rotate(-3deg);
+  transition: transform 0.15s, box-shadow 0.2s;
+  box-shadow: 4px 5px 0 #19354a, 0 0 0 3px #ffd04c;
 }
 .dice-face.rolling {
-  animation: diceRoll 0.5s ease-out;
+  animation: diceRoll 0.7s cubic-bezier(.2,.8,.25,1);
 }
 @keyframes diceRoll {
-  0% { transform: rotateX(0deg) rotateY(0deg); }
-  25% { transform: rotateX(180deg); }
-  50% { transform: rotateX(180deg) rotateY(180deg); }
-  75% { transform: rotateX(360deg) rotateY(180deg); }
-  100% { transform: rotateX(360deg) rotateY(360deg); }
+  0% { transform: rotate(-3deg) scale(.86); }
+  25% { transform: rotate(12deg) scale(1.12); }
+  50% { transform: rotate(-14deg) scale(.95); }
+  75% { transform: rotate(7deg) scale(1.05); }
+  100% { transform: rotate(-3deg) scale(1); }
+}
+.dice-face.six-roll { box-shadow: 4px 5px 0 #19354a, 0 0 0 3px #ffd04c, 0 0 28px rgba(239,106,73,0.75); }
+.dice-face.six-roll::before {
+  content: '6!'; position: absolute; right: -17px; top: -18px; z-index: 2;
+  padding: 0.18rem 0.3rem; background: #ef6a49; color: #fff8e8;
+  border: 2px solid #19354a; border-radius: 8px 6px 9px 5px;
+  font: 900 0.75rem var(--font-mono); transform: rotate(11deg);
+  box-shadow: 2px 3px 0 #19354a;
 }
 .dot { display: flex; align-items: center; justify-content: center; }
 .dot::after {
   content: '';
-  width: 7px; height: 7px;
-  background: var(--gold);
+  width: 10px; height: 10px;
+  background: #19354a;
+  border: 2px solid #ef6a49;
   border-radius: 50%;
-  box-shadow: 0 0 5px rgba(255,215,0,0.5);
+  box-shadow: 1px 1px 0 rgba(25,53,74,0.3);
 }
 .dot.empty::after { display: none; }
 
@@ -641,8 +652,8 @@ body {
   background: #19354a; border-top: 3px solid #ffd04c; color: #fff8e8; padding: 0.55rem 1rem;
 }
 .game-status { color: #8df0cf; }
-.dice-face { background: #fff8e8; border-color: #ef6a49; box-shadow: 0 4px 0 rgba(27,45,59,0.25); }
-.dice-face .dot::after { background: #ef6a49; box-shadow: none; }
+.dice-face { background: #fff8e8; border-color: #ef6a49; box-shadow: 4px 5px 0 #19354a, 0 0 0 3px #ffd04c; }
+.dice-face .dot::after { background: #19354a; border-color: #ef6a49; box-shadow: 1px 1px 0 rgba(25,53,74,0.3); }
 .btn-dice { background: #ef6a49; color: #fff8e8; border: 2px solid #ffcf4d; box-shadow: 0 4px 0 #a94438; }
 .btn-dice:hover { background: #f48158; }
 .meme-rail { padding-top: 0.65rem; }
@@ -683,6 +694,7 @@ body {
 @media (max-width: 600px) {
   .game-layout { padding: 0.35rem; gap: 0.25rem; }
   .board-container { padding: 0.35rem; border-radius: 14px; }
+  .dice-face { width: 54px; height: 54px; padding: 6px; }
   .meme-picker { right: 0.5rem; bottom: 6.8rem; width: calc(100vw - 1rem); }
   .meme-picker-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); max-height: 250px; }
 }
