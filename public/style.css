@@ -275,6 +275,7 @@ body {
 .game-title { font-family: var(--font-mono); font-size: 0.9rem; color: var(--gold); letter-spacing: 3px; }
 .game-kicker { color: var(--cyan); font-size: 0.55rem; letter-spacing: 1px; margin-left: 0.5rem; }
 .room-info { font-size: 0.75rem; color: #888; }
+.audio-toggle { margin-left: 0.45rem; padding: 0.25rem 0.55rem; color: var(--cyan); }
 
 .game-layout {
   display: flex; flex: 1; min-height: 0;
@@ -368,7 +369,8 @@ body {
 .meme-emoji { font-size: 2.2rem; line-height: 1; margin: 0.55rem 0 0.35rem; }
 .meme-caption { color: #fff; font-weight: 800; line-height: 1.25; }
 .meme-attribution { color: #c5b5cc; font-size: 0.7rem; margin-top: 0.35rem; }
-.meme-media audio, .meme-media video { width: 100%; margin-top: 0.6rem; border-radius: 8px; }
+.meme-media img, .meme-media audio, .meme-media video { width: 100%; margin-top: 0.6rem; border-radius: 8px; }
+.meme-media .tenor-gif-embed { width: 100%; min-height: 120px; margin-top: 0.6rem; border-radius: 8px; overflow: hidden; }
 
 .game-status {
   flex: 1; font-size: 0.85rem; color: var(--cyan);

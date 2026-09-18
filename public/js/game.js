@@ -14,13 +14,18 @@
   const PLAYER_START = { red: 0, blue: 13, yellow: 26, green: 39 };
   const SAFE_POSITIONS = [0, 13, 26, 39];
 
-  // Keep the game playable without external media. Each entry can later point
-  // to a locally hosted image, audio clip, or short video for the same moment.
+  // Tenor embeds are the default meme source. Local media can still override
+  // an entry later by changing its media object to image/video/audio.
   const MEMES = [
-    { language: 'ಕನ್ನಡ', emoji: '🏠', caption: 'ಅಯ್ಯೋ! ಮನೆಗೆ ವಾಪಸ್!', detail: 'Pawn sent home. Crowd: ಶಾಕ್!' },
-    { language: 'ಕನ್ನಡ', emoji: '😭', caption: 'ಇದು ಯಾವ ನ್ಯಾಯ?', detail: 'ಒಂದು roll… full damage.' },
-    { language: 'ಕನ್ನಡ / Tulu', emoji: '😂', caption: 'ಮನೆಗೆ ಹೋಗು ಮಗಾ!', detail: 'Board mele drama ಜಾಸ್ತಿ.' },
-    { language: 'ಕನ್ನಡ', emoji: '📢', caption: 'Breaking news: pawn gone!', detail: 'ಇವತ್ತು luck off-duty.' }
+    { language: 'ಕನ್ನಡ', emoji: '😏', caption: 'ಸರಿ… ನೋಡೋಣ!', detail: 'Pawn sent home.', media: { type: 'tenor', postId: '20246542', aspectRatio: '1.53846', href: 'https://tenor.com/view/kannada-rachita-ram-gifs-gif-20246542', label: 'Kannada Rachita GIF' } },
+    { language: 'ಕನ್ನಡ', emoji: '🤷', caption: 'ಯಾಕೆ? ಏನಾಯ್ತು?', detail: 'ಒಂದು roll… full damage.', media: { type: 'tenor', postId: '8891559540113239220', aspectRatio: '1.55625', href: 'https://tenor.com/view/yake-why-saikumar-sai-kumar-gif-8891559540113239220', label: 'Yake Why GIF' } },
+    { language: 'ಕನ್ನಡ', emoji: '😈', caption: 'ಮನೆಗೆ ಕಳಿಸಿದ್ದು ನಾನೇ!', detail: 'Board mele drama ಜಾಸ್ತಿ.', media: { type: 'tenor', postId: '1495082648885455520', aspectRatio: '1.75352', href: 'https://tenor.com/view/mischievous-mischief-naughty-boy-naughty-thu-gif-1495082648885455520', label: 'Mischievous GIF' } },
+    { language: 'ಕನ್ನಡ', emoji: '🙏', caption: 'ನಮಸ್ಕಾರ… ಮತ್ತೆ ಬನ್ನಿ!', detail: 'Pawn has left the board.', media: { type: 'tenor', postId: '1045998005965358311', aspectRatio: '1', href: 'https://tenor.com/view/namaskara-hayavadana-jaggesh-raghavendra-stores-namaste-gif-1045998005965358311', label: 'Namaskara Sticker' } },
+    { language: 'ಕನ್ನಡ', emoji: '😂', caption: 'ಇದು comedy ಅಲ್ಲವೇ?', detail: 'Crowd reaction: full volume.', media: { type: 'tenor', postId: '21684182', aspectRatio: '1.78771', href: 'https://tenor.com/view/kannada-comedy-namaskara-vine-store-raghu-gif-21684182', label: 'Kannada Comedy GIF' } },
+    { language: 'ಕನ್ನಡ', emoji: '😎', caption: 'Style ಇತ್ತು… ಈಗ ಮನೆ!', detail: 'Jaggesh-level exit.', media: { type: 'tenor', postId: '10991402', aspectRatio: '1.74265', href: 'https://tenor.com/view/jaggesh-gif-10991402', label: 'Jaggesh GIF' } },
+    { language: 'ಕನ್ನಡ', emoji: '😶', caption: 'ಮಾತೇ ಇಲ್ಲ…', detail: 'That capture hurt.', media: { type: 'tenor', postId: '6971545912784955005', aspectRatio: '1.26087', href: 'https://tenor.com/view/no-words-duniya-vijay-wwr-namskara-maathe-illa-gif-6971545912784955005', label: 'No Words GIF' } },
+    { language: 'ಕನ್ನಡ', emoji: '😭', caption: 'ಇವತ್ತು luck off-duty.', detail: 'Pawn sent home with emotions.', media: { type: 'tenor', postId: '19859659', aspectRatio: '1.53846', href: 'https://tenor.com/view/kannada-darshan-dboss-emotional-gif-19859659', label: 'Kannada Darshan GIF' } },
+    { language: 'ತುಳು', emoji: '😂', caption: 'ಅಯ್ಯೋ, ಎಂಚಿನ ಆಟ ಇದು!', detail: 'Tulu reaction unlocked.', media: { type: 'tenor', postId: '18545202', aspectRatio: '1.30612', href: 'https://tenor.com/view/tulu-funny-as-hell-gif-18545202', label: 'Tulu Funny GIF' } }
   ];
 
   const PATH = [
@@ -75,6 +80,8 @@
   let countdownInterval = null;
   let reconnecting = false;
   let reconnectTimeout = null;
+  let memeAudio = null;
+  let audioEnabled = true;
 
   // Per-tab, not per-browser: localStorage is shared between tabs, so a second tab
   // opened on the same machine would hijack the first tab's player slot.
@@ -187,6 +194,7 @@
     byId('btnPlayAgain').onclick = playAgain;
     byId('btnBackToLobby').onclick = backToLobby;
     byId('btnRestartGame').onclick = () => state.hostId === socket.id && socket.emit('restart_game', { roomId: state.roomId });
+    byId('btnMuteAudio').onclick = toggleAudio;
 
     byId('roomCodeInput').addEventListener('keydown', function(e) { if (e.key === 'Enter') joinRoom(); });
     byId('playerName').addEventListener('keydown', function(e) { if (e.key === 'Enter') createRoom(); });
@@ -676,11 +684,29 @@
     const media = byId('memeMedia');
     media.innerHTML = '';
     if (meme.media) {
-      const el = document.createElement(meme.media.type === 'video' ? 'video' : 'audio');
-      el.src = meme.media.src;
-      el.controls = true;
-      if (meme.media.type === 'video') { el.muted = true; el.playsInline = true; }
-      media.appendChild(el);
+      if (meme.media.type === 'tenor') {
+        renderTenorEmbed(media, meme.media);
+      } else {
+        const mediaTag = meme.media.type === 'video' ? 'video' : (meme.media.type === 'audio' ? 'audio' : 'img');
+        const el = document.createElement(mediaTag);
+        el.src = meme.media.src;
+        if (mediaTag === 'video' || mediaTag === 'audio') el.controls = true;
+        if (mediaTag === 'img') el.alt = meme.caption;
+        if (meme.media.type === 'video') { el.muted = true; el.playsInline = true; }
+        media.appendChild(el);
+      }
+    }
+    if (meme.media && meme.media.type === 'tenor') {
+      byId('memeAttribution').textContent += ' · Via Tenor';
+    }
+    if (audioEnabled && meme.audio) {
+      try {
+        if (!memeAudio) memeAudio = new Audio();
+        memeAudio.src = meme.audio;
+        memeAudio.currentTime = 0;
+        const playAttempt = memeAudio.play();
+        if (playAttempt && playAttempt.catch) playAttempt.catch(function() {});
+      } catch (e) {}
     }
     card.classList.remove('show');
     card.setAttribute('aria-hidden', 'false');
@@ -690,6 +716,37 @@
       card.classList.remove('show');
       card.setAttribute('aria-hidden', 'true');
     }, 5200);
+  }
+
+  function renderTenorEmbed(container, media) {
+    const embed = document.createElement('div');
+    embed.className = 'tenor-gif-embed';
+    embed.dataset.postid = media.postId;
+    embed.dataset.shareMethod = 'host';
+    embed.dataset.aspectRatio = media.aspectRatio;
+    embed.dataset.width = '100%';
+
+    const link = document.createElement('a');
+    link.href = media.href;
+    link.textContent = media.label;
+    embed.appendChild(link);
+    container.appendChild(embed);
+
+    // The Tenor snippet expects the script after its embed element. The
+    // browser caches this script, so repeated meme moments do not redownload it.
+    const script = document.createElement('script');
+    script.type = 'text/javascript';
+    script.async = true;
+    script.src = 'https://tenor.com/embed.js';
+    container.appendChild(script);
+  }
+
+  function toggleAudio() {
+    audioEnabled = !audioEnabled;
+    if (!audioEnabled && memeAudio) memeAudio.pause();
+    const button = byId('btnMuteAudio');
+    button.textContent = audioEnabled ? '🔊 Sound on' : '🔇 Sound off';
+    button.setAttribute('aria-pressed', String(!audioEnabled));
   }
 
   function showWaiting() {
