@@ -15,6 +15,7 @@
   // Eight classic Ludo safe squares: four coloured starts plus four star cells.
   const SAFE_POSITIONS = [0, 8, 13, 21, 26, 34, 39, 47];
   const SIX_ROLL_AUDIO = '/memes/audio/lottery.mp3';
+  const KILL_AUDIO = '/memes/audio/ayoo-deva.mp3';
 
   // Tenor embeds are the default meme source. Local media can still override
   // an entry later by changing its media object to image/video/audio.
@@ -33,7 +34,8 @@
     { language: 'ಕನ್ನಡ', emoji: '🔊', caption: 'ಅಪ್ಪಾ… ಏನಿದು!', detail: 'Ranganna audio reaction.', audio: '/memes/audio/capture-ranganna.mp3', media: { type: 'audio', src: '/memes/audio/capture-ranganna.mp3', label: 'Ranganna audio reaction' } },
     { language: 'ಕನ್ನಡ', emoji: '🤐', caption: 'ನಾವು ಬಾಯಿ ಮುಚ್ಕೊಂಡಿದೀವಿ!', detail: 'Silent reaction audio.', audio: '/memes/audio/naavu-bayi-muchkond-idivi.mp3', media: { type: 'audio', src: '/memes/audio/naavu-bayi-muchkond-idivi.mp3', label: 'Naavu bayi muchkond idivi audio' } },
     { language: 'ಕನ್ನಡ', emoji: '🎙️', caption: 'ಪ್ರದೀಪ್ ಈಶ್ವರ reaction!', detail: 'Pradeep Eshwar audio reaction.', audio: '/memes/audio/pradeep-eshwar.mp3', media: { type: 'audio', src: '/memes/audio/pradeep-eshwar.mp3', label: 'Pradeep Eshwar audio' } },
-    { language: 'ಕನ್ನಡ', emoji: '😨', caption: 'ಇಲ್ಲೊಂದು ಸಮಸ್ಯೆ ಖಂಡಿತ ಇದೆ!', detail: 'Nagavalli has entered the room.', media: { type: 'tenor', postId: '10479754641524431201', aspectRatio: '1.77857', href: 'https://tenor.com/view/aapthamithra-nagavalli-illondu-samasye-khandita-ide-ramachandra-acharya-avinash-gif-10479754641524431201', label: 'Aapthamithra Nagavalli GIF' } }
+    { language: 'ಕನ್ನಡ', emoji: '😨', caption: 'ಇಲ್ಲೊಂದು ಸಮಸ್ಯೆ ಖಂಡಿತ ಇದೆ!', detail: 'Nagavalli has entered the room.', media: { type: 'tenor', postId: '10479754641524431201', aspectRatio: '1.77857', href: 'https://tenor.com/view/aapthamithra-nagavalli-illondu-samasye-khandita-ide-ramachandra-acharya-avinash-gif-10479754641524431201', label: 'Aapthamithra Nagavalli GIF' } },
+    { language: 'ಕನ್ನಡ', emoji: '😱', caption: 'ಅಯ್ಯೋ ದೇವಾ!', detail: 'Kill reaction audio.', audio: '/memes/audio/ayoo-deva.mp3', media: { type: 'audio', src: '/memes/audio/ayoo-deva.mp3', label: 'Ayoo Deva audio' } }
   ];
 
   const PATH = [
@@ -544,7 +546,8 @@
         state.finished[p.color] = d.finished;
         if (d.captured) {
           toast('Pawn sent home — meme moment!');
-          showMemeMoment(d.capture);
+          playSound(KILL_AUDIO);
+          showMemeMoment(d.capture, 'capture');
         }
       }
       updatePanels();
@@ -774,7 +777,7 @@
     if (meme.media && meme.media.type === 'tenor') {
       byId('memeAttribution').textContent += ' · Via Tenor';
     }
-    if (meme.audio) playSound(meme.audio);
+    if (meme.audio && kind !== 'capture') playSound(meme.audio);
     card.classList.remove('show');
     card.setAttribute('aria-hidden', 'false');
     requestAnimationFrame(() => card.classList.add('show'));

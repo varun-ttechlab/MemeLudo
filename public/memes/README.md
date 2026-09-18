@@ -34,8 +34,9 @@ load more slowly than local files.
 
 The current catalog includes `audio/capture-ranganna.mp3`,
 `audio/naavu-bayi-muchkond-idivi.mp3`, and `audio/pradeep-eshwar.mp3` as
-audio-only pinned reactions. A six-roll plays `audio/lottery.mp3`, and the
-winner screen plays `audio/winning.mp3`. Add
+audio-only pinned reactions. The kill event plays `audio/ayoo-deva.mp3`, a
+six-roll plays `audio/lottery.mp3`, and the winner screen plays
+`audio/winning.mp3`. Add
 an `audio` property to another catalog entry if that reaction should also play
 a sound when posted.
 

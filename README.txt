@@ -20,7 +20,7 @@ A 2–4 player Ludo game for LAN/WiFi networks with Kannada/Tulu meme moments.
 - Players can post any catalogued Kannada/Tulu Tenor reaction to the room feed
 - Shared live reaction feed is visible to every player in the room
 - Numbered pin-style meme picker with optional local audio clips
-- Capture audio and winner audio are included in `public/memes/audio/`
+- Kill, six-roll, capture, and winner audio are included in `public/memes/audio/`
 - Classic Ludo safe squares prevent captures on star/start cells
 - Room discovery - see available rooms
 - Reconnect / rematch support
