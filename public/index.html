@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Star Wars Ludo</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+  <div class="starfield"></div>
+  <div id="screen-lobby" class="screen active">
+    <div class="lobby-content">
+      <h1 class="title">STAR WARS<br>LUDO</h1>
+      <p class="subtitle">A Galaxy Far, Far Away Awaits</p>
+      <div class="lobby-card">
+        <div class="input-group">
+          <label>Player Name</label>
+          <input type="text" id="playerName" maxlength="12" placeholder="Enter your name" autocomplete="off" autofocus>
+        </div>
+        <div class="btn-group">
+          <button id="btnCreateRoom" class="btn btn-primary">Create Room</button>
+          <button id="btnJoinRoom" class="btn btn-secondary">Join Room</button>
+        </div>
+        <div class="join-section" id="joinSection" style="display:none">
+          <div class="input-group">
+            <label>Room Code</label>
+            <input type="text" id="roomCodeInput" maxlength="8" placeholder="e.g. SW1234">
+          </div>
+          <button id="btnSubmitJoin" class="btn btn-primary">Join Game</button>
+        </div>
+      </div>
+      <div id="roomList" class="room-list" style="display:none">
+        <h3>Available Rooms</h3>
+        <div id="roomListContainer"></div>
+      </div>
+      <div id="serverInfo" class="server-info"></div>
+    </div>
+  </div>
+
+  <div id="screen-waiting" class="screen">
+    <div class="waiting-content">
+      <h2 class="waiting-title">WAITING FOR<br>PLAYERS</h2>
+      <div class="room-code-display">
+        <span class="room-label">Room Code:</span>
+        <span id="roomCodeDisplay" class="room-code"></span>
+        <button id="btnCopyCode" class="btn-small" title="Copy room code">Copy</button>
+      </div>
+      <div id="playerList" class="player-list"></div>
+      <div class="share-info">
+        Share this code with friends on your network!<br>
+        They connect to <span id="networkAddress" style="color:var(--gold)">loading...</span> and enter the code.
+      </div>
+      <button id="btnStartGame" class="btn btn-primary" style="display:none">Start Game</button>
+      <div id="waitingStatus" class="waiting-status"></div>
+      <div class="btn-group" style="margin-top:1.5rem;gap:1rem;justify-content:center">
+        <button id="btnEndRoom" class="btn btn-danger" style="display:none">Close Room</button>
+        <button id="btnLeaveWaiting" class="btn btn-secondary">Leave Room</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="screen-reconnect" class="screen">
+    <div class="waiting-content">
+      <h2 class="waiting-title">RECONNECTING</h2>
+      <div class="reconnect-spinner"></div>
+      <div id="reconnectStatus" class="waiting-status">Reconnecting...</div>
+      <div class="btn-group" style="margin-top:2rem;gap:1rem;justify-content:center">
+        <button id="btnCancelReconnect" class="btn btn-secondary">Back to Menu</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="screen-game" class="screen">
+    <div class="game-header">
+      <div class="game-title">STAR WARS LUDO</div>
+      <div class="room-info">
+        Room: <span id="gameRoomCode"></span>
+      </div>
+    </div>
+    <div class="game-layout">
+      <div class="sidebar sidebar-left">
+        <div id="playerPanel1" class="player-panel" data-color="red">
+          <div class="panel-indicator"></div>
+          <div class="panel-name">Waiting...</div>
+          <div class="panel-tokens"><span class="token-count">0</span>/4</div>
+        </div>
+        <div id="playerPanel2" class="player-panel" data-color="blue">
+          <div class="panel-indicator"></div>
+          <div class="panel-name">Waiting...</div>
+          <div class="panel-tokens"><span class="token-count">0</span>/4</div>
+        </div>
+      </div>
+      <div class="board-container">
+        <canvas id="boardCanvas"></canvas>
+      </div>
+      <div class="sidebar sidebar-right">
+        <div id="playerPanel3" class="player-panel" data-color="yellow">
+          <div class="panel-indicator"></div>
+          <div class="panel-name">Waiting...</div>
+          <div class="panel-tokens"><span class="token-count">0</span>/4</div>
+        </div>
+        <div id="playerPanel4" class="player-panel" data-color="green">
+          <div class="panel-indicator"></div>
+          <div class="panel-name">Waiting...</div>
+          <div class="panel-tokens"><span class="token-count">0</span>/4</div>
+        </div>
+      </div>
+    </div>
+    <div class="game-footer">
+      <div id="gameStatus" class="game-status">Waiting for game to start...</div>
+      <div id="diceArea" class="dice-area">
+        <div id="diceContainer" class="dice-container">
+          <div id="diceFace" class="dice-face"></div>
+          <button id="btnRollDice" class="btn btn-dice" style="display:none">ROLL</button>
+        </div>
+        <div id="diceLog" class="dice-log"></div>
+      </div>
+      <div id="timerDisplay" class="timer-display"></div>
+      <div class="footer-buttons">
+        <button id="btnForfeit" class="btn-small btn-danger" style="display:none">Forfeit</button>
+        <button id="btnLeaveGame" class="btn-small btn-danger">Leave</button>
+        <button id="btnRestartGame" class="btn-small" style="display:none">Rematch</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="screen-result" class="screen">
+    <div class="result-content">
+      <h1 class="result-title">VICTORY</h1>
+      <div id="winnerDisplay" class="winner-display">
+        <div id="winnerCrown" class="winner-crown">&#9733;</div>
+        <div id="winnerName" class="winner-name"></div>
+        <div class="winner-subtitle">The Force is strong with this one</div>
+      </div>
+      <div class="btn-group" style="gap:1rem;justify-content:center">
+        <button id="btnPlayAgain" class="btn btn-primary">Play Again</button>
+        <button id="btnBackToLobby" class="btn btn-secondary">Main Menu</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="js/game.js"></script>
+</body>
+</html>
