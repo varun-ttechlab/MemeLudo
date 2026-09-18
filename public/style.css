@@ -656,6 +656,7 @@ body {
 .dice-face .dot::after { background: #19354a; border-color: #ef6a49; box-shadow: 1px 1px 0 rgba(25,53,74,0.3); }
 .btn-dice { background: #ef6a49; color: #fff8e8; border: 2px solid #ffcf4d; box-shadow: 0 4px 0 #a94438; }
 .btn-dice:hover { background: #f48158; }
+.btn-dice:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
 .meme-rail { padding-top: 0.65rem; }
 .meme-rail-card, .meme-feed {
   background: rgba(25,53,74,0.93); border-color: rgba(255,208,76,0.75);

@@ -80,7 +80,7 @@
     roomId: null, networkUrl: null, playerColor: null, players: [], hostId: null,
     tokens: { red: [-1, -1, -1, -1], blue: [-1, -1, -1, -1], yellow: [-1, -1, -1, -1], green: [-1, -1, -1, -1] },
     finished: { red: 0, blue: 0, yellow: 0, green: 0 },
-    turnOrder: [], currentTurnName: null,
+    turnOrder: [], currentTurnId: null, currentTurnName: null,
     diceValue: null, phase: 'idle', movableTokens: [],
     myTurn: false, extraTurn: false, gameOver: false
   };
@@ -441,6 +441,7 @@
       }
 
       state.turnOrder = d.turnOrder || [];
+      state.currentTurnId = d.currentTurnId || (state.players.find(p => p.name === d.currentTurnName) || {}).id || null;
       state.currentTurnName = d.currentTurnName;
       state.extraTurn = false;
       state.diceValue = d.diceValue || null;
@@ -486,6 +487,7 @@
       state.diceValue = null;
       for (const c of COLORS) { state.tokens[c] = [-1, -1, -1, -1]; state.finished[c] = 0; }
       state.currentTurnName = d.turnOrder[0];
+      state.currentTurnId = d.currentTurnId || (state.players.find(p => p.name === state.currentTurnName) || {}).id;
       updateMyTurn();
       show('screen-game');
       byId('gameRoomCode').textContent = state.roomId;
@@ -509,6 +511,7 @@
       state.diceValue = null;
       for (const c of COLORS) { state.tokens[c] = [-1, -1, -1, -1]; state.finished[c] = 0; }
       state.currentTurnName = d.turnOrder[0];
+      state.currentTurnId = d.currentTurnId || (state.players.find(p => p.name === state.currentTurnName) || {}).id;
       updateMyTurn();
       byId('btnRollDice').style.display = 'none';
       byId('btnRestartGame').style.display = 'none';
@@ -560,6 +563,7 @@
     });
 
     socket.on('turn_change', d => {
+      state.currentTurnId = d.playerId;
       state.currentTurnName = d.playerName;
       state.extraTurn = d.extraTurn || false;
       state.phase = 'rolling';
@@ -867,12 +871,14 @@
 
   function updateMyTurn() {
     const me = state.players.find(p => p.id === socket.id);
-    state.myTurn = me && state.currentTurnName === me.name;
+    state.myTurn = !!me && state.currentTurnId === me.id;
   }
 
   function updateStatus() {
     const st = byId('gameStatus');
-    const cp = state.players.find(p => p.name === state.currentTurnName);
+    const rollButton = byId('btnRollDice');
+    rollButton.disabled = true;
+    const cp = state.players.find(p => p.id === state.currentTurnId) || state.players.find(p => p.name === state.currentTurnName);
     const hex = cp ? COLOR_MAP[cp.color] : '#FFD700';
 
     if (state.phase === 'finished') { st.textContent = 'Game Over!'; return; }
@@ -880,7 +886,8 @@
     if (state.myTurn) {
       if (state.phase === 'rolling') {
         st.innerHTML = '<span style="color:' + hex + '">YOUR TURN</span> - Roll the dice!';
-        byId('btnRollDice').style.display = 'inline-block';
+        rollButton.style.display = 'inline-block';
+        rollButton.disabled = false;
       } else if (state.phase === 'moving') {
         st.innerHTML = '<span style="color:' + hex + '">YOUR TURN</span> - Click a token';
         if (!state.movableTokens.length) st.textContent = 'No moves available';
@@ -904,7 +911,7 @@
       if (player) {
         nameEl.textContent = player.name;
         cntEl.textContent = state.finished[c] || 0;
-        const isActive = state.currentTurnName === player.name;
+        const isActive = state.currentTurnId ? state.currentTurnId === player.id : state.currentTurnName === player.name;
         const isDC = player.connected === false;
         p.classList.toggle('active-panel', isActive);
         p.classList.toggle('player-disconnected', isDC);

@@ -128,6 +128,7 @@ function sendFullState(socket, room, player) {
   };
   if (room.started) {
     state.turnOrder = room.turnOrder.map(sid => room.players[sid].name);
+    state.currentTurnId = room.turnOrder[room.currentTurnIndex];
     state.currentTurnName = room.players[room.turnOrder[room.currentTurnIndex]].name;
     state.diceValue = room.diceValue;
     state.tokens = {};
@@ -359,6 +360,7 @@ io.on('connection', (socket) => {
       room.turnOrder = buildTurnOrder(room);
       io.to(roomId).emit('game_start', {
         turnOrder: room.turnOrder.map(sid => room.players[sid].name),
+        currentTurnId: room.turnOrder[room.currentTurnIndex],
         players: Object.entries(room.players).map(([sid, p]) => ({
           id: sid, name: p.name, color: p.color
         }))
@@ -490,6 +492,7 @@ io.on('connection', (socket) => {
     room.turnOrder = buildTurnOrder(room);
     io.to(roomId).emit('game_restarted', {
       turnOrder: room.turnOrder.map(sid => room.players[sid].name),
+      currentTurnId: room.turnOrder[room.currentTurnIndex],
       players: Object.entries(room.players).map(([sid, p]) => ({
         id: sid, name: p.name, color: p.color
       }))
@@ -510,6 +513,7 @@ io.on('connection', (socket) => {
     room.turnOrder = buildTurnOrder(room);
     io.to(roomId).emit('game_start', {
       turnOrder: room.turnOrder.map(sid => room.players[sid].name),
+      currentTurnId: room.turnOrder[room.currentTurnIndex],
       players: Object.entries(room.players).map(([sid, p]) => ({
         id: sid, name: p.name, color: p.color
       }))
