@@ -195,6 +195,12 @@
     byId('btnBackToLobby').onclick = backToLobby;
     byId('btnRestartGame').onclick = () => state.hostId === socket.id && socket.emit('restart_game', { roomId: state.roomId });
     byId('btnMuteAudio').onclick = toggleAudio;
+    byId('memePreviewBtn').onclick = function() {
+      showMemeMoment({ memeId: Math.floor(Math.random() * MEMES.length), victims: [{ playerName: 'Preview player' }] });
+    };
+    byId('btnOpenMemePicker').onclick = openMemePicker;
+    byId('btnCloseMemePicker').onclick = closeMemePicker;
+    renderMemePicker();
 
     byId('roomCodeInput').addEventListener('keydown', function(e) { if (e.key === 'Enter') joinRoom(); });
     byId('playerName').addEventListener('keydown', function(e) { if (e.key === 'Enter') createRoom(); });
@@ -535,6 +541,11 @@
       draw();
     });
 
+    socket.on('meme_posted', d => {
+      addMemeFeedItem(d);
+      showMemeMoment({ memeId: d.memeId, victims: [{ playerName: d.playerName }] }, 'posted');
+    });
+
     socket.on('turn_change', d => {
       state.currentTurnName = d.playerName;
       state.extraTurn = d.extraTurn || false;
@@ -672,14 +683,65 @@
     byId('btnStartGame').style.display = isHost && count >= 2 && count < 4 ? 'inline-block' : 'none';
   }
 
-  function showMemeMoment(capture) {
+  function renderMemePicker() {
+    const grid = byId('memePickerGrid');
+    if (!grid) return;
+    grid.innerHTML = MEMES.map((meme, index) =>
+      '<button class="meme-choice" type="button" data-meme-id="' + index + '">' +
+        '<span class="meme-choice-emoji">' + meme.emoji + '</span>' +
+        '<span class="meme-choice-caption">' + meme.caption + '</span>' +
+        '<small>' + meme.language + ' · Tenor</small>' +
+      '</button>'
+    ).join('');
+    grid.querySelectorAll('.meme-choice').forEach(button => {
+      button.onclick = function() {
+        const memeId = Number(button.getAttribute('data-meme-id'));
+        socket.emit('post_meme', { roomId: state.roomId, memeId });
+        closeMemePicker();
+      };
+    });
+  }
+
+  function openMemePicker() {
+    const picker = byId('memePicker');
+    if (!picker) return;
+    picker.hidden = false;
+    picker.classList.add('show');
+  }
+
+  function closeMemePicker() {
+    const picker = byId('memePicker');
+    if (!picker) return;
+    picker.classList.remove('show');
+    picker.hidden = true;
+  }
+
+  function addMemeFeedItem(post) {
+    const feed = byId('memeFeed');
+    if (!feed) return;
+    const meme = MEMES[post.memeId] || MEMES[0];
+    const empty = feed.querySelector('.meme-feed-empty');
+    if (empty) empty.remove();
+    const item = document.createElement('div');
+    item.className = 'meme-feed-item';
+    item.innerHTML = '<span class="meme-feed-emoji">' + meme.emoji + '</span>' +
+      '<span><strong>' + post.playerName + '</strong><small>' + meme.caption + '</small></span>';
+    feed.prepend(item);
+    while (feed.children.length > 3) feed.lastElementChild.remove();
+    const count = byId('memePostCount');
+    count.textContent = String((Number(count.textContent) || 0) + 1);
+  }
+
+  function showMemeMoment(capture, kind) {
     const meme = MEMES[(capture && Number.isInteger(capture.memeId) ? capture.memeId : Date.now()) % MEMES.length];
     const victims = capture && capture.victims ? capture.victims.map(v => v.playerName).join(', ') : 'A pawn';
     const card = byId('memeMoment');
     byId('memeLanguage').textContent = meme.language;
     byId('memeEmoji').textContent = meme.emoji;
     byId('memeCaption').textContent = meme.caption;
-    byId('memeAttribution').textContent = victims + ' got sent home · ' + meme.detail;
+    byId('memeAttribution').textContent = kind === 'posted'
+      ? victims + ' posted this reaction · ' + meme.detail
+      : victims + ' got sent home · ' + meme.detail;
 
     const media = byId('memeMedia');
     media.innerHTML = '';
@@ -715,7 +777,7 @@
     showMemeMoment.hideTimer = setTimeout(function() {
       card.classList.remove('show');
       card.setAttribute('aria-hidden', 'true');
-    }, 5200);
+    }, 3200);
   }
 
   function renderTenorEmbed(container, media) {
@@ -874,57 +936,67 @@
   }
 
   function drawBackground() {
-    ctx.fillStyle = '#1b1026';
+    ctx.fillStyle = '#fff8e8';
     ctx.fillRect(0, 0, BOARD_PX, BOARD_PX);
-    ctx.strokeStyle = 'rgba(255,184,74,0.18)';
-    ctx.lineWidth = 2;
+    ctx.strokeStyle = '#19354a';
+    ctx.lineWidth = 3;
     ctx.strokeRect(1, 1, BOARD_PX - 2, BOARD_PX - 2);
   }
 
   function drawHomeBases() {
     for (const [color, q] of Object.entries(QUADRANTS)) {
       const baseColor = COLOR_MAP[color];
-      for (let r = q.rMin; r <= q.rMax; r++)
-        for (let c = q.cMin; c <= q.cMax; c++) {
-          ctx.fillStyle = baseColor + '12';
-          ctx.fillRect(c * CELL, r * CELL, CELL, CELL);
-          ctx.strokeStyle = baseColor + '20';
-          ctx.lineWidth = 0.5;
-          ctx.strokeRect(c * CELL + 0.5, r * CELL + 0.5, CELL - 1, CELL - 1);
-        }
-      const cx = (q.cMin + q.cMax + 1) * CELL / 2;
-      const cy = (q.rMin + q.rMax + 1) * CELL / 2;
-      ctx.shadowColor = baseColor;
-      ctx.shadowBlur = 20;
-      ctx.fillStyle = baseColor + '20';
-      ctx.beginPath();
-      ctx.arc(cx, cy, CELL * 2, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.shadowBlur = 0;
+      ctx.fillStyle = baseColor;
+      ctx.fillRect(q.cMin * CELL, q.rMin * CELL, 6 * CELL, 6 * CELL);
+      ctx.strokeStyle = '#19354a';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(q.cMin * CELL + 1, q.rMin * CELL + 1, 6 * CELL - 2, 6 * CELL - 2);
+
+      const homeX = (q.cMin + 1) * CELL, homeY = (q.rMin + 1) * CELL;
+      ctx.fillStyle = '#fff8e8';
+      ctx.fillRect(homeX, homeY, 4 * CELL, 4 * CELL);
+      ctx.strokeStyle = 'rgba(25,53,74,0.5)';
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(homeX, homeY, 4 * CELL, 4 * CELL);
+
+      [[1, 1], [1, 3], [3, 1], [3, 3]].forEach(([dr, dc]) => {
+        const cx = (q.cMin + dc + 0.5) * CELL, cy = (q.rMin + dr + 0.5) * CELL;
+        ctx.fillStyle = baseColor;
+        ctx.beginPath();
+        ctx.arc(cx, cy, CELL * 0.34, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#19354a';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      });
     }
   }
 
   function drawCenter() {
-    const cx = 7 * CELL + CELL / 2, cy = 7 * CELL + CELL / 2;
-    ctx.shadowColor = 'rgba(255,184,74,0.36)';
-    ctx.shadowBlur = 25;
-    ctx.fillStyle = 'rgba(255,184,74,0.08)';
+    const x = 6 * CELL, y = 6 * CELL, size = 3 * CELL;
+    const cx = x + size / 2, cy = y + size / 2;
+    const triangles = [
+      { color: COLOR_MAP.red, points: [[x, y], [x + size, y], [cx, cy]] },
+      { color: COLOR_MAP.blue, points: [[x + size, y], [x + size, y + size], [cx, cy]] },
+      { color: COLOR_MAP.yellow, points: [[x + size, y + size], [x, y + size], [cx, cy]] },
+      { color: COLOR_MAP.green, points: [[x, y + size], [x, y], [cx, cy]] }
+    ];
+    triangles.forEach(triangle => {
+      ctx.fillStyle = triangle.color;
+      ctx.beginPath();
+      ctx.moveTo(triangle.points[0][0], triangle.points[0][1]);
+      ctx.lineTo(triangle.points[1][0], triangle.points[1][1]);
+      ctx.lineTo(triangle.points[2][0], triangle.points[2][1]);
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = '#19354a';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+    });
+    ctx.fillStyle = '#fff8e8';
     ctx.beginPath();
-    ctx.arc(cx, cy, CELL * 1.3, 0, Math.PI * 2);
+    ctx.arc(cx, cy, CELL * 0.23, 0, Math.PI * 2);
     ctx.fill();
-    ctx.shadowBlur = 0;
-
-    ctx.strokeStyle = 'rgba(255,184,74,0.2)';
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.arc(cx, cy, CELL * 1.1, 0, Math.PI * 2);
-    ctx.stroke();
-
-    ctx.fillStyle = 'rgba(255,184,74,0.2)';
-    ctx.font = CELL * 0.7 + 'px Consolas, monospace';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('😂', cx, cy);
   }
 
   function drawPath() {
@@ -933,44 +1005,39 @@
       const isSafe = SAFE_POSITIONS.includes(i);
       const startIdx = [0, 13, 26, 39].indexOf(i);
 
-      if (startIdx >= 0) {
-        ctx.fillStyle = COLOR_MAP[COLORS[startIdx]] + '35';
-        ctx.shadowColor = COLOR_MAP[COLORS[startIdx]];
-        ctx.shadowBlur = 6;
-      } else if (isSafe) {
-        ctx.fillStyle = 'rgba(255,184,74,0.14)';
-        ctx.shadowBlur = 0;
-      } else {
-        ctx.fillStyle = 'rgba(255,255,255,0.07)';
-        ctx.shadowBlur = 0;
-      }
-      ctx.fillRect(c * CELL + 1, r * CELL + 1, CELL - 2, CELL - 2);
-      ctx.shadowBlur = 0;
-      ctx.strokeStyle = 'rgba(255,255,255,0.04)';
-      ctx.lineWidth = 0.5;
+      ctx.fillStyle = startIdx >= 0 ? COLOR_MAP[COLORS[startIdx]] : '#fffdf6';
+      if (isSafe && startIdx < 0) ctx.fillStyle = '#ffe6a5';
+      ctx.fillRect(c * CELL, r * CELL, CELL, CELL);
+      ctx.strokeStyle = 'rgba(25,53,74,0.3)';
+      ctx.lineWidth = 1;
       ctx.strokeRect(c * CELL, r * CELL, CELL, CELL);
+      if (isSafe) {
+        ctx.fillStyle = '#19354a';
+        ctx.font = 'bold ' + CELL * 0.46 + 'px Segoe UI, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('★', c * CELL + CELL / 2, r * CELL + CELL / 2);
+      }
     });
   }
 
   function drawHomeColumns() {
     for (const [color, cols] of Object.entries(HOME_COLUMNS)) {
       cols.forEach(([r, c], i) => {
-        const alpha = Math.floor((0.08 + (i / cols.length) * 0.15) * 255).toString(16).padStart(2, '0');
-        ctx.fillStyle = COLOR_MAP[color] + alpha;
-        ctx.fillRect(c * CELL + 1, r * CELL + 1, CELL - 2, CELL - 2);
-        ctx.strokeStyle = COLOR_MAP[color] + '30';
-        ctx.lineWidth = 0.5;
+        ctx.fillStyle = COLOR_MAP[color];
+        ctx.globalAlpha = 0.35 + i * 0.08;
+        ctx.fillRect(c * CELL, r * CELL, CELL, CELL);
+        ctx.globalAlpha = 1;
+        ctx.strokeStyle = 'rgba(25,53,74,0.3)';
+        ctx.lineWidth = 1;
         ctx.strokeRect(c * CELL, r * CELL, CELL, CELL);
 
         if (i === cols.length - 1) {
-          ctx.fillStyle = COLOR_MAP[color] + '50';
-          ctx.shadowColor = COLOR_MAP[color];
-          ctx.shadowBlur = 8;
-          ctx.font = CELL * 0.45 + 'px Consolas, monospace';
+          ctx.fillStyle = '#19354a';
+          ctx.font = 'bold ' + CELL * 0.46 + 'px Segoe UI, sans-serif';
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
-          ctx.fillText('\u2605', c * CELL + CELL / 2, r * CELL + CELL / 2);
-          ctx.shadowBlur = 0;
+          ctx.fillText('★', c * CELL + CELL / 2, r * CELL + CELL / 2);
         }
       });
     }
@@ -1050,43 +1117,30 @@
   }
 
   function drawToken(color, x, y, idx, highlight) {
-    const r = CELL * 0.3;
-    if (highlight) {
-      ctx.shadowColor = '#FFFFFF';
-      ctx.shadowBlur = r * 6;
-    } else {
-      ctx.shadowColor = COLOR_MAP[color];
-      ctx.shadowBlur = r * 2;
-    }
-    ctx.beginPath();
-    ctx.arc(x, y, r, 0, Math.PI * 2);
+    const r = CELL * 0.31;
+    ctx.shadowColor = highlight ? '#19354a' : 'rgba(25,53,74,0.35)';
+    ctx.shadowBlur = highlight ? r * 2.6 : r * 1.2;
     ctx.fillStyle = COLOR_MAP[color];
-    ctx.fill();
-
-    if (highlight) {
-      ctx.shadowBlur = r * 8;
-    } else {
-      ctx.shadowBlur = r * 3;
-    }
     ctx.beginPath();
-    ctx.arc(x, y, r * 0.55, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(255,255,255,0.2)';
+    ctx.ellipse(x, y + r * 0.75, r * 0.92, r * 0.35, 0, 0, Math.PI * 2);
     ctx.fill();
-
+    ctx.beginPath();
+    ctx.moveTo(x - r * 0.72, y + r * 0.62);
+    ctx.quadraticCurveTo(x - r * 0.58, y - r * 0.05, x - r * 0.32, y - r * 0.35);
+    ctx.arc(x, y - r * 0.62, r * 0.34, 0, Math.PI * 2);
+    ctx.quadraticCurveTo(x + r * 0.58, y - r * 0.05, x + r * 0.72, y + r * 0.62);
+    ctx.closePath();
+    ctx.fill();
     ctx.shadowBlur = 0;
-    if (highlight) {
-      ctx.strokeStyle = 'rgba(255,255,255,0.7)';
-      ctx.lineWidth = 2;
-    } else {
-      ctx.strokeStyle = 'rgba(255,255,255,0.2)';
-      ctx.lineWidth = 0.5;
-    }
-    ctx.beginPath();
-    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.strokeStyle = highlight ? '#19354a' : 'rgba(25,53,74,0.45)';
+    ctx.lineWidth = highlight ? 2 : 1;
     ctx.stroke();
-
-    ctx.fillStyle = 'rgba(255,255,255,0.85)';
-    ctx.font = 'bold ' + (r * 0.85) + 'px Consolas, monospace';
+    ctx.fillStyle = 'rgba(255,255,255,0.45)';
+    ctx.beginPath();
+    ctx.arc(x - r * 0.12, y - r * 0.72, r * 0.12, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#19354a';
+    ctx.font = 'bold ' + (r * 0.65) + 'px Segoe UI, sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(idx + 1, x, y + 0.5);

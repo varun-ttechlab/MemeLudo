@@ -15,8 +15,10 @@ A 2–4 player Ludo game for LAN/WiFi networks with Kannada/Tulu meme moments.
 
 - Crypto-random dice (Node.js crypto.randomInt)
 - 4-player room system with join codes
-- Canvas-based Ludo board with a colorful party-game theme
+- Classic four-color Ludo board with a Kannada/Tulu party-game theme
 - A short meme moment appears when a pawn is sent home
+- Players can post any catalogued Kannada/Tulu Tenor reaction to the room feed
+- Shared live reaction feed is visible to every player in the room
 - Optional local audio/video media can be added to the meme catalog later
 - Room discovery - see available rooms
 - Reconnect / rematch support

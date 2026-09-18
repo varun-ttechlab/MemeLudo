@@ -364,6 +364,21 @@ io.on('connection', (socket) => {
     }
   });
 
+  socket.on('post_meme', ({ roomId, memeId }) => {
+    const room = rooms[roomId];
+    const player = room && room.players[socket.id];
+    const id = Number(memeId);
+    if (!room || !room.started || !player || !Number.isInteger(id) || id < 0) return;
+
+    io.to(roomId).emit('meme_posted', {
+      memeId: id,
+      playerId: socket.id,
+      playerName: player.name,
+      playerColor: player.color,
+      timestamp: Date.now()
+    });
+  });
+
   socket.on('roll_dice', ({ roomId }) => {
     const room = rooms[roomId];
     if (!room || !room.started) return;

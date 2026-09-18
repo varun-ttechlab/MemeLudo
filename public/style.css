@@ -190,6 +190,101 @@ body {
   border-radius: 8px; color: #ffd7d7; font-size: 0.8rem; line-height: 1.45; text-align: center;
 }
 
+/* MEME-POSTER LOBBY */
+#screen-lobby {
+  background:
+    radial-gradient(circle at 12% 20%, rgba(255,255,255,0.3) 0 2px, transparent 3px),
+    radial-gradient(circle at 82% 14%, rgba(255,255,255,0.28) 0 3px, transparent 4px),
+    linear-gradient(180deg, #9bd6e9 0%, #c8e6dc 46%, #f5c783 100%);
+  overflow: hidden;
+}
+#screen-lobby::after {
+  content: ''; position: absolute; left: -5%; right: -5%; bottom: -10%; height: 30%;
+  background: linear-gradient(180deg, transparent, rgba(20,42,52,0.9));
+  z-index: -1;
+}
+.lobby-content {
+  display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(330px, 0.85fr);
+  align-items: center; gap: clamp(2rem, 6vw, 6rem);
+  width: min(1120px, 100%); max-width: none; padding: 3rem 2.5rem;
+}
+.lobby-hero { color: #182435; }
+.brand-chip {
+  display: inline-flex; gap: 0.45rem; align-items: center; padding: 0.4rem 0.75rem;
+  background: rgba(15,35,53,0.9); border: 1px solid rgba(255,255,255,0.4);
+  border-radius: 999px; color: #ffd36a; font: 700 0.65rem var(--font-mono); letter-spacing: 1px;
+}
+.brand-chip i { color: #fff; font-style: normal; opacity: 0.55; }
+.lobby-hero .title {
+  text-align: left; font-size: clamp(4.2rem, 8vw, 7.2rem); letter-spacing: 4px;
+  color: #ffd04c; -webkit-text-stroke: 3px #182435;
+  text-shadow: 5px 6px 0 #182435, 0 16px 30px rgba(13,29,43,0.2);
+  margin: 1rem 0 0.35rem;
+}
+.lobby-hero .title span { color: #fff7dc; }
+.lobby-hero .subtitle {
+  color: #182435; text-align: left; font-size: 1rem; letter-spacing: 4px;
+  margin-bottom: 1.5rem; font-weight: 800;
+}
+.hero-quote {
+  display: flex; flex-direction: column; gap: 0.25rem; width: min(460px, 100%);
+  padding: 1rem 1.1rem; background: #fff4d4; border: 2px solid #182435;
+  border-radius: 6px 18px 6px 18px; box-shadow: 6px 7px 0 rgba(24,36,53,0.9); transform: rotate(-1deg);
+}
+.hero-quote-label { color: #cb6243; font: 800 0.65rem var(--font-mono); letter-spacing: 2px; }
+.hero-quote strong { color: #182435; font-size: 1.3rem; }
+.hero-quote span:last-child { color: #58636c; font-size: 0.8rem; }
+.hero-stickers { display: flex; flex-wrap: wrap; gap: 0.55rem; margin-top: 1.25rem; }
+.hero-stickers span {
+  padding: 0.45rem 0.7rem; background: rgba(255,255,255,0.72); border: 1px solid rgba(24,36,53,0.35);
+  border-radius: 999px; color: #182435; font-size: 0.75rem; font-weight: 800;
+}
+.lobby-card {
+  background: rgba(25, 29, 48, 0.96); border: 2px solid #ffd04c; border-radius: 20px;
+  padding: 1.65rem; width: 100%; max-width: 420px; box-shadow: 12px 14px 0 rgba(24,36,53,0.72);
+}
+.card-eyebrow { color: #66f2c5; font: 800 0.65rem var(--font-mono); letter-spacing: 2px; }
+.lobby-card h2 { color: #fff4d4; font-size: 1.65rem; margin: 0.45rem 0 0.4rem; }
+.card-copy { color: #bcc5cc; font-size: 0.82rem; line-height: 1.5; margin-bottom: 1.25rem; }
+.lobby-actions .btn { min-height: 3rem; display: flex; align-items: center; justify-content: center; gap: 0.4rem; }
+.meme-preview-strip {
+  display: flex; flex-direction: column; gap: 0.25rem; margin-top: 1.2rem; padding-top: 0.9rem;
+  border-top: 1px dashed rgba(255,255,255,0.25); color: #aeb8c0; font-size: 0.72rem;
+}
+.meme-preview-title { color: #ffbd4a; font: 800 0.62rem var(--font-mono); letter-spacing: 1px; }
+#screen-lobby .server-info { color: rgba(24,36,53,0.72); }
+#screen-lobby .server-warning { max-width: 420px; grid-column: 2; margin-top: -1.5rem; }
+
+/* MEME REACTION RAIL */
+.meme-rail {
+  width: 190px; flex-shrink: 0; padding: 0.5rem 0.5rem 0.5rem 0;
+  display: flex; flex-direction: column; gap: 0.6rem;
+}
+.meme-rail-title {
+  display: flex; justify-content: space-between; align-items: center;
+  color: #fff4d4; font: 700 0.62rem var(--font-mono); letter-spacing: 1px; text-transform: uppercase;
+}
+.meme-rail-title b {
+  color: var(--cyan); border: 1px solid rgba(102,242,197,0.5); border-radius: 999px;
+  padding: 0.18rem 0.35rem; font-size: 0.52rem;
+}
+.meme-rail-card {
+  background: linear-gradient(145deg, rgba(58,34,72,0.98), rgba(25,24,46,0.98));
+  border: 1px solid rgba(255,189,74,0.5); border-radius: 12px; padding: 0.9rem 0.75rem;
+  min-height: 170px; display: flex; flex-direction: column; justify-content: center;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+}
+.meme-rail-emoji { font-size: 2.8rem; line-height: 1; }
+.meme-rail-card strong { color: #fff4d4; margin: 0.45rem 0 0.25rem; font-size: 0.85rem; }
+.meme-rail-card > span { color: #b8b0bd; font-size: 0.7rem; line-height: 1.4; }
+.meme-preview-btn { align-self: flex-start; margin-top: 0.75rem; color: #182435; background: var(--gold); border-color: var(--gold); }
+.emoji-reaction-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.45rem; }
+.emoji-reaction-grid span {
+  background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px;
+  padding: 0.55rem 0.25rem; text-align: center; font-size: 1.45rem;
+}
+.emoji-reaction-grid small { display: block; color: #c8bccf; font-size: 0.53rem; margin-top: 0.2rem; }
+
 /* WAITING */
 #screen-waiting { justify-content: center; align-items: center; }
 .waiting-content {
@@ -475,6 +570,10 @@ body {
 .toast.show { opacity: 1; }
 
 /* RESPONSIVE */
+@media (max-width: 1000px) {
+  .lobby-content { gap: 2rem; }
+  .meme-rail { width: 150px; }
+}
 @media (max-width: 800px) {
   .sidebar { width: 100px; padding: 0.25rem; }
   .sidebar .player-panel { padding: 0.35rem; }
@@ -487,7 +586,23 @@ body {
 }
 
 @media (max-width: 600px) {
+  .lobby-content { display: flex; flex-direction: column; gap: 1.5rem; padding: 2rem 1rem; }
+  .lobby-hero { text-align: center; }
+  .lobby-hero .title { text-align: center; font-size: 4rem; }
+  .lobby-hero .subtitle { text-align: center; }
+  .hero-quote { margin: 0 auto; }
+  .lobby-card { max-width: 420px; }
+  #screen-lobby .server-warning { grid-column: auto; margin-top: 0; }
   .game-layout { flex-direction: column; }
+  .meme-rail {
+    display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0.45rem;
+    width: 100%; padding: 0.35rem 0.6rem 0.6rem; order: 4;
+  }
+  .meme-rail-card { min-height: 0; padding: 0.65rem; }
+  .meme-rail-emoji { font-size: 2rem; }
+  .meme-rail-title:nth-of-type(2) { grid-column: 2; grid-row: 1; }
+  .meme-rail-card { grid-column: 1; grid-row: 2 / span 2; }
+  .emoji-reaction-grid { grid-column: 2; grid-row: 2; }
   .sidebar { flex-direction: row; width: 100%; }
   .sidebar .player-panel { flex: 1; padding: 0.25rem; }
   .sidebar-left { order: 2; }
@@ -497,4 +612,81 @@ body {
   .winner-name { font-size: 1.5rem; }
   .meme-moment { right: 0.6rem; bottom: 7.5rem; width: 220px; }
   .game-kicker { display: none; }
+}
+
+/* FULL MEME-PARTY GAME THEME */
+#screen-game {
+  background:
+    radial-gradient(circle at 8% 18%, rgba(255,255,255,0.18) 0 2px, transparent 3px),
+    linear-gradient(180deg, #75cbd6 0%, #acdeda 52%, #eebc73 100%);
+  color: #1b2d3b;
+}
+.game-header {
+  background: #19354a; border-bottom: 3px solid #ffd04c; padding: 0.7rem 1.2rem;
+  box-shadow: 0 4px 0 rgba(23,45,60,0.25); z-index: 3;
+}
+.game-title { color: #ffd04c; text-shadow: 3px 3px 0 #102433; letter-spacing: 3px; }
+.game-kicker { color: #8df0cf; }
+.room-info { color: #eaf5e9; }
+.audio-toggle { color: #8df0cf; border-color: rgba(141,240,207,0.5); }
+.game-layout { gap: 0.35rem; padding: 0.7rem; }
+.sidebar { padding: 0.5rem 0.3rem; gap: 0.75rem; }
+.player-panel {
+  background: rgba(255,248,228,0.9); border: 2px solid rgba(27,45,59,0.28); color: #1b2d3b;
+  box-shadow: 4px 5px 0 rgba(27,45,59,0.18); border-radius: 14px;
+}
+.player-panel.active-panel { box-shadow: 0 0 0 3px #ffd04c, 5px 6px 0 rgba(27,45,59,0.25); }
+.panel-tokens { color: #59656a; }
+.board-container {
+  padding: 0.85rem; background: rgba(255,248,228,0.45); border: 2px solid rgba(27,45,59,0.25);
+  border-radius: 24px; box-shadow: 8px 9px 0 rgba(27,45,59,0.2);
+}
+#boardCanvas { border: 5px solid #19354a; border-radius: 12px; box-shadow: 0 8px 0 rgba(27,45,59,0.22); }
+.game-footer {
+  background: #19354a; border-top: 3px solid #ffd04c; color: #fff8e8; padding: 0.55rem 1rem;
+}
+.game-status { color: #8df0cf; }
+.dice-face { background: #fff8e8; border-color: #ef6a49; box-shadow: 0 4px 0 rgba(27,45,59,0.25); }
+.dice-face .dot::after { background: #ef6a49; box-shadow: none; }
+.btn-dice { background: #ef6a49; color: #fff8e8; border: 2px solid #ffcf4d; box-shadow: 0 4px 0 #a94438; }
+.btn-dice:hover { background: #f48158; }
+.meme-rail { padding-top: 0.65rem; }
+.meme-rail-card, .meme-feed {
+  background: rgba(25,53,74,0.93); border-color: rgba(255,208,76,0.75);
+}
+.meme-post-btn { width: 100%; background: #ef6a49; color: #fff8e8; border: 2px solid #ffcf4d; box-shadow: 0 4px 0 #a94438; }
+.meme-post-btn:hover { background: #f48158; transform: translateY(-1px); }
+.meme-feed-heading { margin-top: 0.25rem; }
+.meme-feed { border: 1px solid rgba(255,255,255,0.12); border-radius: 10px; padding: 0.45rem; min-height: 58px; }
+.meme-feed-empty { color: #c8d2d0; font-size: 0.65rem; line-height: 1.35; }
+.meme-feed-item { display: flex; align-items: center; gap: 0.45rem; padding: 0.32rem 0.18rem; border-bottom: 1px solid rgba(255,255,255,0.08); }
+.meme-feed-item:last-child { border-bottom: 0; }
+.meme-feed-emoji { font-size: 1.25rem; }
+.meme-feed-item strong, .meme-feed-item small { display: block; }
+.meme-feed-item strong { color: #fff4d4; font-size: 0.68rem; }
+.meme-feed-item small { color: #9ee8d0; font-size: 0.6rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 125px; }
+.meme-picker {
+  position: fixed; right: 1.1rem; bottom: 4.6rem; width: min(460px, calc(100vw - 2rem));
+  padding: 1rem; background: #19354a; color: #fff8e8; border: 3px solid #ffd04c; border-radius: 18px;
+  box-shadow: 10px 12px 0 rgba(27,45,59,0.28); z-index: 20;
+}
+.meme-picker[hidden] { display: none; }
+.meme-picker-header { display: flex; justify-content: space-between; align-items: start; gap: 0.75rem; }
+.meme-picker-header strong, .meme-picker-kicker { display: block; }
+.meme-picker-kicker { color: #8df0cf; font: 800 0.58rem var(--font-mono); letter-spacing: 2px; }
+.meme-picker-header strong { color: #ffd04c; font-size: 1.05rem; margin-top: 0.2rem; }
+.meme-picker-copy { color: #cfdfdc; font-size: 0.72rem; margin: 0.65rem 0 0.8rem; }
+.meme-picker-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.45rem; max-height: 300px; overflow: auto; }
+.meme-choice { display: flex; flex-direction: column; align-items: flex-start; gap: 0.2rem; min-height: 82px; padding: 0.55rem; color: #fff8e8; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,208,76,0.28); border-radius: 10px; text-align: left; cursor: pointer; }
+.meme-choice:hover { background: #ef6a49; border-color: #ffd04c; transform: translateY(-2px); }
+.meme-choice-emoji { font-size: 1.35rem; }
+.meme-choice-caption { font-size: 0.65rem; line-height: 1.2; }
+.meme-choice small { color: #9ee8d0; font-size: 0.53rem; }
+.meme-choice:hover small { color: #fff8e8; }
+
+@media (max-width: 600px) {
+  .game-layout { padding: 0.35rem; gap: 0.25rem; }
+  .board-container { padding: 0.35rem; border-radius: 14px; }
+  .meme-picker { right: 0.5rem; bottom: 6.8rem; width: calc(100vw - 1rem); }
+  .meme-picker-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); max-height: 250px; }
 }

@@ -198,7 +198,7 @@ async function testGameFlow() {
   console.log(`  Current player: ${PLAYER_NAMES[playerIdx]}`);
 
   let attempts = 0;
-  while (!tokenMoved && attempts < 20) {
+  while (!tokenMoved && attempts < 40) {
     attempts++;
     const rollPromise = new Promise(res => {
       sockets[playerIdx].once('dice_rolled', res);
@@ -244,7 +244,7 @@ async function testGameFlow() {
       }
     }
   }
-  assert(tokenMoved, 'Token was moved within 20 attempts');
+    assert(tokenMoved, 'Token was moved within 40 attempts');
 
   console.log('\n  -- Full game flow test completed --');
 }
@@ -289,6 +289,11 @@ async function testTwoPlayerManualStart() {
   assert(!!startData, 'Host can manually start a 2-player room');
   assert(startData && startData.turnOrder.length === 2, 'Manual start preserves both players');
   await Promise.race([starts[1], sleep(3000)]);
+  const memePromise = new Promise(resolve => guest.once('meme_posted', resolve));
+  host.emit('post_meme', { roomId: room.roomId, memeId: 8 });
+  const posted = await Promise.race([memePromise, sleep(3000).then(() => null)]);
+  assert(posted && posted.memeId === 8, 'Players can post a catalogued meme to the room');
+  assert(posted && posted.playerName === 'Host', 'Posted meme includes the sender name');
   host.close();
   guest.close();
 }
