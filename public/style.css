@@ -278,13 +278,6 @@ body {
 .meme-rail-card strong { color: #fff4d4; margin: 0.45rem 0 0.25rem; font-size: 0.85rem; }
 .meme-rail-card > span { color: #b8b0bd; font-size: 0.7rem; line-height: 1.4; }
 .meme-preview-btn { align-self: flex-start; margin-top: 0.75rem; color: #182435; background: var(--gold); border-color: var(--gold); }
-.emoji-reaction-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.45rem; }
-.emoji-reaction-grid span {
-  background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px;
-  padding: 0.55rem 0.25rem; text-align: center; font-size: 1.45rem;
-}
-.emoji-reaction-grid small { display: block; color: #c8bccf; font-size: 0.53rem; margin-top: 0.2rem; }
-
 /* WAITING */
 #screen-waiting { justify-content: center; align-items: center; }
 .waiting-content {
@@ -447,8 +440,8 @@ body {
   position: absolute;
   right: 1rem;
   bottom: 4.8rem;
-  width: min(260px, calc(100vw - 2rem));
-  padding: 0.8rem 0.9rem;
+  width: min(390px, calc(100vw - 2rem));
+  padding: 1rem 1.1rem;
   background: linear-gradient(145deg, rgba(55, 28, 66, 0.98), rgba(28, 18, 42, 0.98));
   border: 1px solid var(--gold);
   border-radius: 14px;
@@ -465,7 +458,7 @@ body {
 .meme-caption { color: #fff; font-weight: 800; line-height: 1.25; }
 .meme-attribution { color: #c5b5cc; font-size: 0.7rem; margin-top: 0.35rem; }
 .meme-media img, .meme-media audio, .meme-media video { width: 100%; margin-top: 0.6rem; border-radius: 8px; }
-.meme-media .tenor-gif-embed { width: 100%; min-height: 120px; margin-top: 0.6rem; border-radius: 8px; overflow: hidden; }
+.meme-media .tenor-gif-embed { width: 100%; min-height: 190px; margin-top: 0.75rem; border-radius: 10px; overflow: hidden; }
 
 .game-status {
   flex: 1; font-size: 0.85rem; color: var(--cyan);
@@ -600,9 +593,11 @@ body {
   }
   .meme-rail-card { min-height: 0; padding: 0.65rem; }
   .meme-rail-emoji { font-size: 2rem; }
-  .meme-rail-title:nth-of-type(2) { grid-column: 2; grid-row: 1; }
-  .meme-rail-card { grid-column: 1; grid-row: 2 / span 2; }
-  .emoji-reaction-grid { grid-column: 2; grid-row: 2; }
+  .meme-rail-title:first-child { grid-column: 1 / -1; grid-row: 1; }
+  .meme-rail-card { grid-column: 1; grid-row: 2 / span 3; }
+  .meme-feed-heading { grid-column: 2; grid-row: 2; }
+  .meme-feed { grid-column: 2; grid-row: 3; }
+  .meme-post-btn { grid-column: 2; grid-row: 4; }
   .sidebar { flex-direction: row; width: 100%; }
   .sidebar .player-panel { flex: 1; padding: 0.25rem; }
   .sidebar-left { order: 2; }
@@ -610,7 +605,7 @@ body {
   .board-container { order: 1; }
   .result-title { font-size: 2.5rem; }
   .winner-name { font-size: 1.5rem; }
-  .meme-moment { right: 0.6rem; bottom: 7.5rem; width: 220px; }
+  .meme-moment { right: 0.6rem; bottom: 7.5rem; width: min(360px, calc(100vw - 1.2rem)); }
   .game-kicker { display: none; }
 }
 
@@ -679,6 +674,7 @@ body {
 .meme-picker-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.45rem; max-height: 300px; overflow: auto; }
 .meme-choice { display: flex; flex-direction: column; align-items: flex-start; gap: 0.2rem; min-height: 82px; padding: 0.55rem; color: #fff8e8; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,208,76,0.28); border-radius: 10px; text-align: left; cursor: pointer; }
 .meme-choice:hover { background: #ef6a49; border-color: #ffd04c; transform: translateY(-2px); }
+.meme-choice-pin { color: #ffd04c; font: 800 0.56rem var(--font-mono); letter-spacing: 1px; }
 .meme-choice-emoji { font-size: 1.35rem; }
 .meme-choice-caption { font-size: 0.65rem; line-height: 1.2; }
 .meme-choice small { color: #9ee8d0; font-size: 0.53rem; }
@@ -690,3 +686,25 @@ body {
   .meme-picker { right: 0.5rem; bottom: 6.8rem; width: calc(100vw - 1rem); }
   .meme-picker-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); max-height: 250px; }
 }
+
+/* SHARED PARTY SCREENS */
+#screen-waiting, #screen-reconnect, #screen-result {
+  background:
+    radial-gradient(circle at 14% 18%, rgba(255,255,255,0.28) 0 2px, transparent 3px),
+    linear-gradient(180deg, #75cbd6 0%, #bfe4d5 52%, #f0c781 100%);
+  color: #19354a;
+}
+.waiting-content, .result-content {
+  position: relative; z-index: 1; background: rgba(255,248,228,0.82);
+  border: 3px solid #19354a; border-radius: 22px; box-shadow: 10px 11px 0 rgba(25,53,74,0.22);
+}
+.result-content { width: min(680px, calc(100% - 2rem)); min-height: 0; margin: auto; }
+.waiting-title, .result-title { color: #ef6a49; text-shadow: 3px 3px 0 #ffd04c; }
+.room-code-display, .player-entry { background: rgba(25,53,74,0.94); border-color: #ffd04c; }
+.room-label, .share-info { color: #dcebe4; }
+.room-code { color: #ffd04c; }
+.waiting-status { color: #ef6a49; }
+.winner-crown { color: #ef6a49; }
+.winner-name { color: #19354a; text-shadow: 2px 2px 0 rgba(255,208,76,0.7); }
+.winner-subtitle { color: #5e6d6d; }
+.reconnect-spinner { border-color: rgba(25,53,74,0.18); border-top-color: #ef6a49; }

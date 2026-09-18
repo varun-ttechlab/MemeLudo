@@ -12,12 +12,13 @@
     yellow: 'rgba(255,215,0,0.6)', green: 'rgba(51,255,51,0.6)'
   };
   const PLAYER_START = { red: 0, blue: 13, yellow: 26, green: 39 };
-  const SAFE_POSITIONS = [0, 13, 26, 39];
+  // Eight classic Ludo safe squares: four coloured starts plus four star cells.
+  const SAFE_POSITIONS = [0, 8, 13, 21, 26, 34, 39, 47];
 
   // Tenor embeds are the default meme source. Local media can still override
   // an entry later by changing its media object to image/video/audio.
   const MEMES = [
-    { language: 'ಕನ್ನಡ', emoji: '😏', caption: 'ಸರಿ… ನೋಡೋಣ!', detail: 'Pawn sent home.', media: { type: 'tenor', postId: '20246542', aspectRatio: '1.53846', href: 'https://tenor.com/view/kannada-rachita-ram-gifs-gif-20246542', label: 'Kannada Rachita GIF' } },
+    { language: 'ಕನ್ನಡ', emoji: '😏', caption: 'ಸರಿ… ನೋಡೋಣ!', detail: 'Pawn sent home.', audio: '/memes/audio/capture-ranganna.mp3', media: { type: 'tenor', postId: '20246542', aspectRatio: '1.53846', href: 'https://tenor.com/view/kannada-rachita-ram-gifs-gif-20246542', label: 'Kannada Rachita GIF' } },
     { language: 'ಕನ್ನಡ', emoji: '🤷', caption: 'ಯಾಕೆ? ಏನಾಯ್ತು?', detail: 'ಒಂದು roll… full damage.', media: { type: 'tenor', postId: '8891559540113239220', aspectRatio: '1.55625', href: 'https://tenor.com/view/yake-why-saikumar-sai-kumar-gif-8891559540113239220', label: 'Yake Why GIF' } },
     { language: 'ಕನ್ನಡ', emoji: '😈', caption: 'ಮನೆಗೆ ಕಳಿಸಿದ್ದು ನಾನೇ!', detail: 'Board mele drama ಜಾಸ್ತಿ.', media: { type: 'tenor', postId: '1495082648885455520', aspectRatio: '1.75352', href: 'https://tenor.com/view/mischievous-mischief-naughty-boy-naughty-thu-gif-1495082648885455520', label: 'Mischievous GIF' } },
     { language: 'ಕನ್ನಡ', emoji: '🙏', caption: 'ನಮಸ್ಕಾರ… ಮತ್ತೆ ಬನ್ನಿ!', detail: 'Pawn has left the board.', media: { type: 'tenor', postId: '1045998005965358311', aspectRatio: '1', href: 'https://tenor.com/view/namaskara-hayavadana-jaggesh-raghavendra-stores-namaste-gif-1045998005965358311', label: 'Namaskara Sticker' } },
@@ -639,6 +640,7 @@
       document.title = originalTitle;
       byId('btnForfeit').style.display = 'none';
       byId('timerDisplay').textContent = '';
+      playSound('/memes/audio/winning.mp3');
       show('screen-result');
     });
 
@@ -688,9 +690,10 @@
     if (!grid) return;
     grid.innerHTML = MEMES.map((meme, index) =>
       '<button class="meme-choice" type="button" data-meme-id="' + index + '">' +
+        '<span class="meme-choice-pin">📌 ' + String(index + 1).padStart(2, '0') + '</span>' +
         '<span class="meme-choice-emoji">' + meme.emoji + '</span>' +
         '<span class="meme-choice-caption">' + meme.caption + '</span>' +
-        '<small>' + meme.language + ' · Tenor</small>' +
+        '<small>' + meme.language + (meme.audio ? ' · audio' : ' · Tenor') + '</small>' +
       '</button>'
     ).join('');
     grid.querySelectorAll('.meme-choice').forEach(button => {
@@ -761,15 +764,7 @@
     if (meme.media && meme.media.type === 'tenor') {
       byId('memeAttribution').textContent += ' · Via Tenor';
     }
-    if (audioEnabled && meme.audio) {
-      try {
-        if (!memeAudio) memeAudio = new Audio();
-        memeAudio.src = meme.audio;
-        memeAudio.currentTime = 0;
-        const playAttempt = memeAudio.play();
-        if (playAttempt && playAttempt.catch) playAttempt.catch(function() {});
-      } catch (e) {}
-    }
+    if (meme.audio) playSound(meme.audio);
     card.classList.remove('show');
     card.setAttribute('aria-hidden', 'false');
     requestAnimationFrame(() => card.classList.add('show'));
@@ -777,7 +772,7 @@
     showMemeMoment.hideTimer = setTimeout(function() {
       card.classList.remove('show');
       card.setAttribute('aria-hidden', 'true');
-    }, 3200);
+    }, 4500);
   }
 
   function renderTenorEmbed(container, media) {
@@ -809,6 +804,17 @@
     const button = byId('btnMuteAudio');
     button.textContent = audioEnabled ? '🔊 Sound on' : '🔇 Sound off';
     button.setAttribute('aria-pressed', String(!audioEnabled));
+  }
+
+  function playSound(src) {
+    if (!audioEnabled) return;
+    try {
+      if (!memeAudio) memeAudio = new Audio();
+      memeAudio.src = src;
+      memeAudio.currentTime = 0;
+      const playAttempt = memeAudio.play();
+      if (playAttempt && playAttempt.catch) playAttempt.catch(function() {});
+    } catch (e) {}
   }
 
   function showWaiting() {
