@@ -32,6 +32,10 @@
     hengeJoku: { name: 'Henge Joku', emoji: '🤣', mark: 'H', image: '/assets/characters/henge-joku.png' },
     shadesAnna: { name: 'Shades Anna', emoji: '😎', mark: 'A', image: '/assets/characters/shades-anna.png' }
   };
+  // Keep the lobby picker focused on the image-backed characters. The older
+  // IDs remain in CHARACTER_DEFS so rooms created by an older build can still
+  // render safely when somebody reconnects.
+  const PICKER_CHARACTER_IDS = ['sathyavaglu', 'genius', 'jingaLaka', 'hengeJoku', 'shadesAnna'];
   const PLAYER_START = { red: 0, blue: 13, yellow: 26, green: 39 };
   // Eight classic Ludo safe squares: four coloured starts plus four star cells.
   const SAFE_POSITIONS = [0, 8, 13, 21, 26, 34, 39, 47];
@@ -733,7 +737,7 @@
 
   function getSelectedCharacter() {
     const input = byId('characterChoice');
-    return input && CHARACTER_DEFS[input.value] ? input.value : 'ranganna';
+    return input && PICKER_CHARACTER_IDS.includes(input.value) ? input.value : PICKER_CHARACTER_IDS[0];
   }
 
   function preloadCharacterImages() {
@@ -752,7 +756,7 @@
     const grid = byId('characterChoices');
     if (!grid) return;
     const selected = getSelectedCharacter();
-    grid.innerHTML = Object.entries(CHARACTER_DEFS).map(([id, character]) =>
+    grid.innerHTML = PICKER_CHARACTER_IDS.map(id => [id, CHARACTER_DEFS[id]]).map(([id, character]) =>
       '<button class="character-choice' + (id === selected ? ' selected' : '') + '" type="button" data-character="' + id + '" aria-pressed="' + (id === selected) + '">' +
         (character.image ? '<img class="character-choice-image" src="' + character.image + '" alt="">' : '<span class="character-choice-mark">' + character.mark + '</span>') +
         '<span><strong>' + character.emoji + ' ' + character.name + '</strong><small>Pawn legend</small></span>' +
@@ -1187,9 +1191,11 @@
   function drawTokens() {
     const movable = getMovableTokenPositions();
     const grouped = {};
+    const homeCounts = {};
 
     for (const color of COLORS) {
       const tokens = state.tokens[color] || [];
+      homeCounts[color] = tokens.filter(pos => pos === -1).length;
       tokens.forEach((pos, idx) => {
         const player = state.players.find(p => p.color === color);
         if (!player) return;
@@ -1228,81 +1234,75 @@
         data.forEach((d, i) => {
           const off = (i - (data.length - 1) / 2) * CELL * 0.22;
           const isMovable = movable.some(m => m.idx === d.idx && m.r === d.r && m.c === d.c);
-          drawToken(d.color, d.c * CELL + CELL / 2 + off, d.r * CELL + CELL / 2, d.idx, isMovable);
+          const compactHomeCard = d.pos === -1 && homeCounts[d.color] > 1;
+          drawToken(d.color, d.c * CELL + CELL / 2 + off, d.r * CELL + CELL / 2, d.idx, isMovable, compactHomeCard);
         });
       } else {
         const isMovable = movable.some(m => m.idx === data.idx && m.r === data.r && m.c === data.c);
-        drawToken(data.color, data.c * CELL + CELL / 2, data.r * CELL + CELL / 2, data.idx, isMovable);
+        const compactHomeCard = data.pos === -1 && homeCounts[data.color] > 1;
+        drawToken(data.color, data.c * CELL + CELL / 2, data.r * CELL + CELL / 2, data.idx, isMovable, compactHomeCard);
       }
     }
   }
 
-  function drawToken(color, x, y, idx, highlight) {
-    // Keep the pawn silhouette generous enough for a face/icon on phone-sized
-    // boards while leaving a small margin inside each 15x15 board cell.
-    const r = CELL * 0.40;
+  function drawToken(color, x, y, idx, highlight, compactHomeCard) {
+    // Meme character cards replace the old triangular pawn silhouette. The
+    // circle is deliberately large enough to remain legible on phone-sized
+    // cells, while home-zone cards shrink only when that house has multiple
+    // pawns so all four can fit without touching.
+    const cardRadius = CELL * (compactHomeCard ? 0.26 : 0.36);
     const player = state.players.find(p => p.color === color);
     const character = getCharacterMeta(player && player.character);
     const characterImage = characterImages[player && player.character];
-    const headY = y - r * 0.62;
-    // The face is intentionally larger than a traditional tiny Ludo nub so
-    // the selected meme character remains recognisable on phone-sized cells.
-    const headRadius = r * 0.56;
-    ctx.shadowColor = highlight ? '#19354a' : 'rgba(25,53,74,0.35)';
-    ctx.shadowBlur = highlight ? r * 2.6 : r * 1.2;
+    const imageRadius = cardRadius * 0.86;
+    ctx.shadowColor = highlight ? '#ffd66b' : 'rgba(25,53,74,0.42)';
+    ctx.shadowBlur = highlight ? cardRadius * 1.3 : cardRadius * 0.8;
     ctx.fillStyle = COLOR_MAP[color];
     ctx.beginPath();
-    ctx.ellipse(x, y + r * 0.75, r * 0.92, r * 0.35, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.moveTo(x - r * 0.72, y + r * 0.62);
-    ctx.quadraticCurveTo(x - r * 0.58, y - r * 0.05, x - r * 0.32, y - r * 0.35);
-      ctx.arc(x, headY, headRadius, 0, Math.PI * 2);
-    ctx.quadraticCurveTo(x + r * 0.58, y - r * 0.05, x + r * 0.72, y + r * 0.62);
-    ctx.closePath();
+    ctx.arc(x, y, cardRadius, 0, Math.PI * 2);
     ctx.fill();
     ctx.shadowBlur = 0;
-    ctx.strokeStyle = highlight ? '#19354a' : 'rgba(25,53,74,0.45)';
-    ctx.lineWidth = highlight ? 2 : 1;
-    ctx.stroke();
+
+    ctx.fillStyle = '#fff8e8';
+    ctx.beginPath();
+    ctx.arc(x, y, imageRadius, 0, Math.PI * 2);
+    ctx.fill();
     if (characterImage) {
       ctx.save();
       ctx.beginPath();
-      ctx.arc(x, headY, headRadius - 0.5, 0, Math.PI * 2);
+      ctx.arc(x, y, imageRadius, 0, Math.PI * 2);
       ctx.clip();
-      const imageSize = headRadius * 2;
+      const imageSize = imageRadius * 2;
       const imageRatio = characterImage.naturalWidth / Math.max(1, characterImage.naturalHeight);
       const drawWidth = imageRatio >= 1 ? imageSize * imageRatio : imageSize;
       const drawHeight = imageRatio >= 1 ? imageSize : imageSize / imageRatio;
-      ctx.drawImage(characterImage, x - drawWidth / 2, headY - drawHeight / 2, drawWidth, drawHeight);
+      ctx.drawImage(characterImage, x - drawWidth / 2, y - drawHeight / 2, drawWidth, drawHeight);
       ctx.restore();
-      ctx.strokeStyle = '#19354a';
-      ctx.lineWidth = Math.max(1, r * 0.08);
-      ctx.beginPath();
-      ctx.arc(x, headY, headRadius, 0, Math.PI * 2);
-      ctx.stroke();
+    } else {
+      // Legacy rooms may contain a character without a supplied image. Keep
+      // those pawns as circular cards instead of falling back to a triangle.
+      ctx.fillStyle = COLOR_MAP[color];
+      ctx.font = '900 ' + (cardRadius * 0.95) + 'px Segoe UI Emoji, Segoe UI, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(character.emoji || character.mark, x, y + 1);
     }
-    ctx.fillStyle = 'rgba(255,255,255,0.45)';
+
+    ctx.strokeStyle = highlight ? '#ffd66b' : '#16263f';
+    ctx.lineWidth = Math.max(1.5, CELL * 0.065);
     ctx.beginPath();
-    ctx.arc(x - r * 0.12, y - r * 0.72, r * 0.1, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = '#19354a';
-    ctx.font = 'bold ' + (r * 0.65) + 'px Segoe UI, sans-serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(idx + 1, x, y + 0.5);
-    // A compact character badge makes the selected legend visible without
-    // sacrificing the traditional numbered pawns or color-coded board lanes.
-    ctx.fillStyle = '#fff8e8';
-    ctx.beginPath();
-    ctx.arc(x + r * 0.58, y - r * 0.58, r * 0.28, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = '#19354a';
-    ctx.lineWidth = Math.max(1, r * 0.08);
+    ctx.arc(x, y, cardRadius, 0, Math.PI * 2);
     ctx.stroke();
-    ctx.fillStyle = '#19354a';
-    ctx.font = '900 ' + (r * 0.33) + 'px Segoe UI, sans-serif';
-    ctx.fillText(character.mark, x + r * 0.58, y - r * 0.58 + 0.5);
+
+    // Small numbered chip: all four pawns share the player's chosen face.
+    const badgeRadius = Math.max(3, cardRadius * 0.27);
+    ctx.fillStyle = '#16263f';
+    ctx.beginPath();
+    ctx.arc(x + cardRadius * 0.58, y + cardRadius * 0.58, badgeRadius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#fff8e8';
+    ctx.font = '900 ' + Math.max(6, badgeRadius * 1.15) + 'px Segoe UI, sans-serif';
+    ctx.fillText(idx + 1, x + cardRadius * 0.58, y + cardRadius * 0.58 + 0.5);
   }
 
   function drawLabels() {
