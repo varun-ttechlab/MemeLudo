@@ -21,7 +21,12 @@ const CHARACTER_DEFS = {
   duniyaVijay: { name: 'Duniya Vijay', emoji: '😎', mark: 'V' },
   upendra: { name: 'Upendra', emoji: '🧠', mark: 'U' },
   pradeepEshwar: { name: 'Pradeep Eshwar', emoji: '🎤', mark: 'P' },
-  massAnna: { name: 'Mass Anna', emoji: '🔥', mark: 'M' }
+  massAnna: { name: 'Mass Anna', emoji: '🔥', mark: 'M' },
+  sathyavaglu: { name: 'Sathyavaglu', emoji: '🫡', mark: 'S' },
+  genius: { name: 'Genius', emoji: '🧡', mark: 'G' },
+  jingaLaka: { name: 'Jinga Laka', emoji: '😂', mark: 'J' },
+  hengeJoku: { name: 'Henge Joku', emoji: '🤣', mark: 'H' },
+  shadesAnna: { name: 'Shades Anna', emoji: '😎', mark: 'A' }
 };
 const DEFAULT_CHARACTER = 'ranganna';
 

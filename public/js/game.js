@@ -25,7 +25,12 @@
     duniyaVijay: { name: 'Duniya Vijay', emoji: '😎', mark: 'V' },
     upendra: { name: 'Upendra', emoji: '🧠', mark: 'U' },
     pradeepEshwar: { name: 'Pradeep Eshwar', emoji: '🎤', mark: 'P' },
-    massAnna: { name: 'Mass Anna', emoji: '🔥', mark: 'M' }
+    massAnna: { name: 'Mass Anna', emoji: '🔥', mark: 'M' },
+    sathyavaglu: { name: 'Sathyavaglu', emoji: '🫡', mark: 'S', image: '/assets/characters/sathyavaglu.png' },
+    genius: { name: 'Genius', emoji: '🧡', mark: 'G', image: '/assets/characters/genius.png' },
+    jingaLaka: { name: 'Jinga Laka', emoji: '😂', mark: 'J', image: '/assets/characters/jinga-laka.png' },
+    hengeJoku: { name: 'Henge Joku', emoji: '🤣', mark: 'H', image: '/assets/characters/henge-joku.png' },
+    shadesAnna: { name: 'Shades Anna', emoji: '😎', mark: 'A', image: '/assets/characters/shades-anna.png' }
   };
   const PLAYER_START = { red: 0, blue: 13, yellow: 26, green: 39 };
   // Eight classic Ludo safe squares: four coloured starts plus four star cells.
@@ -108,6 +113,7 @@
   let reconnectTimeout = null;
   let memeAudio = null;
   let audioEnabled = true;
+  const characterImages = {};
 
   // Per-tab, not per-browser: localStorage is shared between tabs, so a second tab
   // opened on the same machine would hijack the first tab's player slot.
@@ -123,6 +129,7 @@
     resizeCanvas();
     bindUI();
     renderCharacterPicker();
+    preloadCharacterImages();
     bindSocket();
     updateServerInfo();
     if (!socket) showServerWarning();
@@ -729,13 +736,25 @@
     return input && CHARACTER_DEFS[input.value] ? input.value : 'ranganna';
   }
 
+  function preloadCharacterImages() {
+    Object.entries(CHARACTER_DEFS).forEach(([id, character]) => {
+      if (!character.image) return;
+      const image = new Image();
+      image.onload = function() {
+        characterImages[id] = image;
+        if (state.phase !== 'idle') draw();
+      };
+      image.src = character.image;
+    });
+  }
+
   function renderCharacterPicker() {
     const grid = byId('characterChoices');
     if (!grid) return;
     const selected = getSelectedCharacter();
     grid.innerHTML = Object.entries(CHARACTER_DEFS).map(([id, character]) =>
       '<button class="character-choice' + (id === selected ? ' selected' : '') + '" type="button" data-character="' + id + '" aria-pressed="' + (id === selected) + '">' +
-        '<span class="character-choice-mark">' + character.mark + '</span>' +
+        (character.image ? '<img class="character-choice-image" src="' + character.image + '" alt="">' : '<span class="character-choice-mark">' + character.mark + '</span>') +
         '<span><strong>' + character.emoji + ' ' + character.name + '</strong><small>Pawn legend</small></span>' +
       '</button>'
     ).join('');
@@ -1027,11 +1046,14 @@
   }
 
   function drawBackground() {
-    ctx.fillStyle = '#fff8e8';
+    const boardGradient = ctx.createLinearGradient(0, 0, BOARD_PX, BOARD_PX);
+    boardGradient.addColorStop(0, '#fffdf7');
+    boardGradient.addColorStop(1, '#eef4fb');
+    ctx.fillStyle = boardGradient;
     ctx.fillRect(0, 0, BOARD_PX, BOARD_PX);
-    ctx.strokeStyle = '#19354a';
-    ctx.lineWidth = 3;
-    ctx.strokeRect(1, 1, BOARD_PX - 2, BOARD_PX - 2);
+    ctx.strokeStyle = '#16263f';
+    ctx.lineWidth = 2.5;
+    ctx.strokeRect(1.5, 1.5, BOARD_PX - 3, BOARD_PX - 3);
   }
 
   function drawHomeBases() {
@@ -1088,6 +1110,11 @@
     ctx.beginPath();
     ctx.arc(cx, cy, CELL * 0.23, 0, Math.PI * 2);
     ctx.fill();
+    ctx.strokeStyle = '#16263f';
+    ctx.lineWidth = Math.max(1.5, CELL * 0.06);
+    ctx.beginPath();
+    ctx.arc(cx, cy, CELL * 0.23, 0, Math.PI * 2);
+    ctx.stroke();
   }
 
   function drawPath() {
@@ -1099,8 +1126,8 @@
       ctx.fillStyle = startIdx >= 0 ? BOARD_COLOR_MAP[COLORS[startIdx]] : '#fffdf6';
       if (isSafe && startIdx < 0) ctx.fillStyle = '#ffe6a5';
       ctx.fillRect(c * CELL, r * CELL, CELL, CELL);
-      ctx.strokeStyle = 'rgba(25,53,74,0.3)';
-      ctx.lineWidth = 1;
+      ctx.strokeStyle = 'rgba(22,38,63,0.34)';
+      ctx.lineWidth = 1.25;
       ctx.strokeRect(c * CELL, r * CELL, CELL, CELL);
       if (isSafe) {
         ctx.fillStyle = '#19354a';
@@ -1116,11 +1143,11 @@
     for (const [color, cols] of Object.entries(HOME_COLUMNS)) {
       cols.forEach(([r, c], i) => {
         ctx.fillStyle = BOARD_COLOR_MAP[color];
-        ctx.globalAlpha = 0.35 + i * 0.08;
+        ctx.globalAlpha = 0.42 + i * 0.07;
         ctx.fillRect(c * CELL, r * CELL, CELL, CELL);
         ctx.globalAlpha = 1;
-        ctx.strokeStyle = 'rgba(25,53,74,0.3)';
-        ctx.lineWidth = 1;
+        ctx.strokeStyle = 'rgba(22,38,63,0.32)';
+        ctx.lineWidth = 1.25;
         ctx.strokeRect(c * CELL, r * CELL, CELL, CELL);
 
         if (i === cols.length - 1) {
@@ -1211,9 +1238,16 @@
   }
 
   function drawToken(color, x, y, idx, highlight) {
-    const r = CELL * 0.31;
+    // Keep the pawn silhouette generous enough for a face/icon on phone-sized
+    // boards while leaving a small margin inside each 15x15 board cell.
+    const r = CELL * 0.40;
     const player = state.players.find(p => p.color === color);
     const character = getCharacterMeta(player && player.character);
+    const characterImage = characterImages[player && player.character];
+    const headY = y - r * 0.62;
+    // The face is intentionally larger than a traditional tiny Ludo nub so
+    // the selected meme character remains recognisable on phone-sized cells.
+    const headRadius = r * 0.56;
     ctx.shadowColor = highlight ? '#19354a' : 'rgba(25,53,74,0.35)';
     ctx.shadowBlur = highlight ? r * 2.6 : r * 1.2;
     ctx.fillStyle = COLOR_MAP[color];
@@ -1223,7 +1257,7 @@
     ctx.beginPath();
     ctx.moveTo(x - r * 0.72, y + r * 0.62);
     ctx.quadraticCurveTo(x - r * 0.58, y - r * 0.05, x - r * 0.32, y - r * 0.35);
-    ctx.arc(x, y - r * 0.62, r * 0.34, 0, Math.PI * 2);
+      ctx.arc(x, headY, headRadius, 0, Math.PI * 2);
     ctx.quadraticCurveTo(x + r * 0.58, y - r * 0.05, x + r * 0.72, y + r * 0.62);
     ctx.closePath();
     ctx.fill();
@@ -1231,9 +1265,26 @@
     ctx.strokeStyle = highlight ? '#19354a' : 'rgba(25,53,74,0.45)';
     ctx.lineWidth = highlight ? 2 : 1;
     ctx.stroke();
+    if (characterImage) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(x, headY, headRadius - 0.5, 0, Math.PI * 2);
+      ctx.clip();
+      const imageSize = headRadius * 2;
+      const imageRatio = characterImage.naturalWidth / Math.max(1, characterImage.naturalHeight);
+      const drawWidth = imageRatio >= 1 ? imageSize * imageRatio : imageSize;
+      const drawHeight = imageRatio >= 1 ? imageSize : imageSize / imageRatio;
+      ctx.drawImage(characterImage, x - drawWidth / 2, headY - drawHeight / 2, drawWidth, drawHeight);
+      ctx.restore();
+      ctx.strokeStyle = '#19354a';
+      ctx.lineWidth = Math.max(1, r * 0.08);
+      ctx.beginPath();
+      ctx.arc(x, headY, headRadius, 0, Math.PI * 2);
+      ctx.stroke();
+    }
     ctx.fillStyle = 'rgba(255,255,255,0.45)';
     ctx.beginPath();
-    ctx.arc(x - r * 0.12, y - r * 0.72, r * 0.12, 0, Math.PI * 2);
+    ctx.arc(x - r * 0.12, y - r * 0.72, r * 0.1, 0, Math.PI * 2);
     ctx.fill();
     ctx.fillStyle = '#19354a';
     ctx.font = 'bold ' + (r * 0.65) + 'px Segoe UI, sans-serif';
