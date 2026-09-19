@@ -13,6 +13,31 @@ app.use(express.static('public'));
 const COLORS = ['red', 'blue', 'yellow', 'green'];
 const PLAYER_START = { red: 0, blue: 13, yellow: 26, green: 39 };
 const SAFE_POSITIONS = [0, 8, 13, 21, 26, 34, 39, 47];
+const CHARACTER_DEFS = {
+  ranganna: { name: 'Ranganna', emoji: '🎙️', mark: 'R' },
+  jaggesh: { name: 'Jaggesh', emoji: '😏', mark: 'J' },
+  nagavalli: { name: 'Nagavalli', emoji: '👻', mark: 'N' },
+  shobraj: { name: 'Shobraj', emoji: '💃', mark: 'S' },
+  duniyaVijay: { name: 'Duniya Vijay', emoji: '😎', mark: 'V' },
+  upendra: { name: 'Upendra', emoji: '🧠', mark: 'U' },
+  pradeepEshwar: { name: 'Pradeep Eshwar', emoji: '🎤', mark: 'P' },
+  massAnna: { name: 'Mass Anna', emoji: '🔥', mark: 'M' }
+};
+const DEFAULT_CHARACTER = 'ranganna';
+
+function normalizeCharacter(character) {
+  return Object.prototype.hasOwnProperty.call(CHARACTER_DEFS, character) ? character : DEFAULT_CHARACTER;
+}
+
+function publicPlayer(id, player) {
+  return {
+    id,
+    name: player.name,
+    color: player.color,
+    character: player.character || DEFAULT_CHARACTER,
+    connected: player.connected !== false
+  };
+}
 
 const rooms = {};
 const sessions = {};
@@ -83,9 +108,7 @@ function removeFromRoom(socket, roomId) {
 
   if (room.hostId === socket.id) room.hostId = room.turnOrder[0];
   io.to(roomId).emit('player_left', {
-    players: Object.entries(room.players).map(([id, p]) => ({
-      id, name: p.name, color: p.color, connected: p.connected !== false
-    })),
+    players: Object.entries(room.players).map(([id, p]) => publicPlayer(id, p)),
     hostId: room.hostId
   });
   console.log(`${player.name} left room ${roomId}`);
@@ -113,14 +136,13 @@ function advanceTurn(roomId) {
 }
 
 function sendFullState(socket, room, player) {
-  const playerList = Object.entries(room.players).map(([id, p]) => ({
-    id, name: p.name, color: p.color, connected: p.connected !== false
-  }));
+  const playerList = Object.entries(room.players).map(([id, p]) => publicPlayer(id, p));
   const state = {
     type: 'full_state',
     roomId: room.id,
     networkUrl: getNetworkUrl(),
     playerColor: player.color,
+    playerCharacter: player.character || DEFAULT_CHARACTER,
     players: playerList,
     hostId: room.hostId,
     started: room.started,
@@ -282,7 +304,7 @@ function applyMove(room, playerId, tokenIdx, diceValue) {
 io.on('connection', (socket) => {
   console.log(`Player connected: ${socket.id}`);
 
-  socket.on('create_room', ({ playerName }) => {
+  socket.on('create_room', ({ playerName, character }) => {
     // A socket can only be in one room; drop the old one instead of orphaning it.
     const previous = currentRoomOf(socket.id);
     if (previous) removeFromRoom(socket, previous);
@@ -306,19 +328,19 @@ io.on('connection', (socket) => {
     sessions[sessionToken] = roomId;
     room.players[socket.id] = {
       id: socket.id, name: playerName || 'Player 1',
-      color: 'red', ...createInitialState(),
+      color: 'red', character: normalizeCharacter(character), ...createInitialState(),
       sessionToken, connected: true, disconnectTimeout: null
     };
     room.turnOrder = [socket.id];
     socket.join(roomId);
     socket.emit('room_created', {
-      roomId, networkUrl: getNetworkUrl(), players: [{ id: socket.id, name: playerName || 'Player 1', color: 'red' }],
-      playerColor: 'red', hostId: socket.id, sessionToken
+      roomId, networkUrl: getNetworkUrl(), players: [publicPlayer(socket.id, room.players[socket.id])],
+      playerColor: 'red', playerCharacter: room.players[socket.id].character, hostId: socket.id, sessionToken
     });
     console.log(`Room ${roomId} created by ${playerName}`);
   });
 
-  socket.on('join_room', ({ roomId, playerName }) => {
+  socket.on('join_room', ({ roomId, playerName, character }) => {
     roomId = String(roomId || '').trim().toUpperCase();
     const room = rooms[roomId];
     if (!room) return socket.emit('error', { message: 'Room not found' });
@@ -341,18 +363,16 @@ io.on('connection', (socket) => {
     sessions[sessionToken] = roomId;
     room.players[socket.id] = {
       id: socket.id, name: playerName || `Player ${COLORS.indexOf(color) + 1}`,
-      color, ...createInitialState(),
+      color, character: normalizeCharacter(character), ...createInitialState(),
       sessionToken, connected: true, disconnectTimeout: null
     };
     room.turnOrder.push(socket.id);
     socket.join(roomId);
 
-    const playerList = Object.entries(room.players).map(([id, p]) => ({
-      id, name: p.name, color: p.color
-    }));
+    const playerList = Object.entries(room.players).map(([id, p]) => publicPlayer(id, p));
 
     io.to(roomId).emit('player_joined', { players: playerList, playerColor: color });
-    socket.emit('room_joined', { roomId, networkUrl: getNetworkUrl(), players: playerList, playerColor: color, hostId: room.hostId, sessionToken });
+    socket.emit('room_joined', { roomId, networkUrl: getNetworkUrl(), players: playerList, playerColor: color, playerCharacter: room.players[socket.id].character, hostId: room.hostId, sessionToken });
 
     if (Object.keys(room.players).length === 4) {
       room.started = true;
@@ -361,9 +381,7 @@ io.on('connection', (socket) => {
       io.to(roomId).emit('game_start', {
         turnOrder: room.turnOrder.map(sid => room.players[sid].name),
         currentTurnId: room.turnOrder[room.currentTurnIndex],
-        players: Object.entries(room.players).map(([sid, p]) => ({
-          id: sid, name: p.name, color: p.color
-        }))
+        players: Object.entries(room.players).map(([sid, p]) => publicPlayer(sid, p))
       });
     }
   });
@@ -493,9 +511,7 @@ io.on('connection', (socket) => {
     io.to(roomId).emit('game_restarted', {
       turnOrder: room.turnOrder.map(sid => room.players[sid].name),
       currentTurnId: room.turnOrder[room.currentTurnIndex],
-      players: Object.entries(room.players).map(([sid, p]) => ({
-        id: sid, name: p.name, color: p.color
-      }))
+      players: Object.entries(room.players).map(([sid, p]) => publicPlayer(sid, p))
     });
   });
 
@@ -514,9 +530,7 @@ io.on('connection', (socket) => {
     io.to(roomId).emit('game_start', {
       turnOrder: room.turnOrder.map(sid => room.players[sid].name),
       currentTurnId: room.turnOrder[room.currentTurnIndex],
-      players: Object.entries(room.players).map(([sid, p]) => ({
-        id: sid, name: p.name, color: p.color
-      }))
+      players: Object.entries(room.players).map(([sid, p]) => publicPlayer(sid, p))
     });
   });
 
@@ -586,9 +600,7 @@ io.on('connection', (socket) => {
         console.log(`${player.name} disconnected (session: ${player.sessionToken.substring(0,8)}...)`);
 
         // Notify others
-        const playerList = Object.entries(room.players).map(([id, p]) => ({
-          id, name: p.name, color: p.color, connected: p.connected !== false
-        }));
+        const playerList = Object.entries(room.players).map(([id, p]) => publicPlayer(id, p));
         if (room.started) {
           io.to(roomId).emit('player_disconnected', {
             playerId: socket.id, playerName: player.name, players: playerList
@@ -614,9 +626,7 @@ io.on('connection', (socket) => {
             if (rooms[roomId].hostId === socket.id) {
               rooms[roomId].hostId = rooms[roomId].turnOrder[0];
             }
-            const updatedList = Object.entries(rooms[roomId].players).map(([id, p]) => ({
-              id, name: p.name, color: p.color
-            }));
+            const updatedList = Object.entries(rooms[roomId].players).map(([id, p]) => publicPlayer(id, p));
             io.to(roomId).emit('player_left', { players: updatedList, hostId: rooms[roomId].hostId });
           }
         }, 5 * 60 * 1000);
@@ -692,9 +702,7 @@ io.on('connection', (socket) => {
     console.log(`${foundPlayer.name} reconnected to room ${roomId}`);
 
     // Notify others
-    const pList = Object.entries(room.players).map(([id, p]) => ({
-      id, name: p.name, color: p.color, connected: true
-    }));
+    const pList = Object.entries(room.players).map(([id, p]) => publicPlayer(id, p));
     io.to(roomId).emit('player_reconnected', {
       playerId: socket.id, playerName: foundPlayer.name, players: pList, hostId: room.hostId
     });

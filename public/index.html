@@ -31,6 +31,14 @@
           <label>Player Name</label>
           <input type="text" id="playerName" maxlength="12" placeholder="Enter your name" autocomplete="off" autofocus>
         </div>
+        <div class="character-picker">
+          <div class="character-picker-heading">
+            <label>Choose your meme legend</label>
+            <span>Shown on your pawns</span>
+          </div>
+          <input type="hidden" id="characterChoice" value="ranganna">
+          <div id="characterChoices" class="character-choices" aria-label="Choose your meme legend"></div>
+        </div>
         <div class="btn-group lobby-actions">
           <button id="btnCreateRoom" class="btn btn-primary"><span>🎲</span> Create Room</button>
           <button id="btnJoinRoom" class="btn btn-secondary"><span>👥</span> Join Room</button>
@@ -102,11 +110,13 @@
         <div id="playerPanel1" class="player-panel" data-color="red">
           <div class="panel-indicator"></div>
           <div class="panel-name">Waiting...</div>
+          <div class="panel-character"></div>
           <div class="panel-tokens"><span class="token-count">0</span>/4</div>
         </div>
         <div id="playerPanel2" class="player-panel" data-color="blue">
           <div class="panel-indicator"></div>
           <div class="panel-name">Waiting...</div>
+          <div class="panel-character"></div>
           <div class="panel-tokens"><span class="token-count">0</span>/4</div>
         </div>
       </div>
@@ -117,11 +127,13 @@
         <div id="playerPanel3" class="player-panel" data-color="yellow">
           <div class="panel-indicator"></div>
           <div class="panel-name">Waiting...</div>
+          <div class="panel-character"></div>
           <div class="panel-tokens"><span class="token-count">0</span>/4</div>
         </div>
         <div id="playerPanel4" class="player-panel" data-color="green">
           <div class="panel-indicator"></div>
           <div class="panel-name">Waiting...</div>
+          <div class="panel-character"></div>
           <div class="panel-tokens"><span class="token-count">0</span>/4</div>
         </div>
       </div>

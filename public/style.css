@@ -723,3 +723,219 @@ body {
 .winner-name { color: #19354a; text-shadow: 2px 2px 0 rgba(255,208,76,0.7); }
 .winner-subtitle { color: #5e6d6d; }
 .reconnect-spinner { border-color: rgba(25,53,74,0.18); border-top-color: #ef6a49; }
+
+/* CHARACTER PICKER */
+.character-picker { margin: 0.9rem 0 1.05rem; }
+.character-picker-heading { display: flex; justify-content: space-between; align-items: baseline; gap: 0.5rem; margin-bottom: 0.45rem; }
+.character-picker-heading label { color: #ffbd4a; font: 800 0.62rem var(--font-mono); letter-spacing: 1px; text-transform: uppercase; }
+.character-picker-heading span { color: #9aa8b8; font-size: 0.62rem; }
+.character-choices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.4rem; }
+.character-choice {
+  display: flex; align-items: center; gap: 0.45rem; min-width: 0; min-height: 48px; padding: 0.45rem;
+  color: #eaf5ff; background: rgba(255,255,255,0.06); border: 1px solid rgba(141,240,207,0.2);
+  border-radius: 10px; text-align: left; cursor: pointer; touch-action: manipulation; transition: 0.18s ease;
+}
+.character-choice:hover, .character-choice:focus-visible { transform: translateY(-1px); border-color: #ffd66b; background: rgba(255,115,93,0.22); }
+.character-choice.selected { border-color: #8df0cf; background: rgba(141,240,207,0.16); box-shadow: 0 0 0 2px rgba(141,240,207,0.18); }
+.character-choice-mark { display: grid; place-items: center; width: 27px; height: 27px; flex: 0 0 27px; border-radius: 50%; background: #ff735d; color: #fff8e8; font: 900 0.72rem var(--font-mono); }
+.character-choice strong, .character-choice small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.character-choice strong { color: #fff3c8; font-size: 0.66rem; }
+.character-choice small { color: #9ee8d0; margin-top: 0.12rem; font-size: 0.52rem; }
+.player-entry-avatar { font-size: 1.2rem; line-height: 1; }
+.player-entry-name small { display: block; color: #9ee8d0; font-size: 0.58rem; margin-top: 0.1rem; }
+.panel-character { color: #9ee8d0; font-size: 0.58rem; line-height: 1.2; min-height: 0.75rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* PREMIUM ARCADE LAYOUT
+   The game uses a real grid on wide screens and a scroll-safe stacked grid on
+   phones. This prevents the board, reactions, player cards, and controls from
+   fighting over one fixed-height flex row. */
+#screen-game {
+  background:
+    radial-gradient(circle at 12% 8%, rgba(87, 232, 209, 0.12), transparent 28%),
+    radial-gradient(circle at 88% 16%, rgba(255, 112, 91, 0.14), transparent 30%),
+    linear-gradient(145deg, #081322 0%, #0d1c35 48%, #11182d 100%);
+  color: #edf5ff;
+  height: 100dvh;
+  overflow: hidden;
+}
+.game-header {
+  min-height: 62px;
+  padding: 0.7rem 1.1rem;
+  background: rgba(7, 17, 33, 0.94);
+  border-bottom: 1px solid rgba(141, 240, 207, 0.28);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.22);
+}
+.game-title { color: #ffd66b; text-shadow: 0 0 18px rgba(255, 214, 107, 0.22); }
+.game-kicker { color: #8df0cf; }
+.room-info { color: #c9d8eb; }
+.audio-toggle { color: #8df0cf; border-color: rgba(141, 240, 207, 0.45); }
+.game-layout {
+  display: grid;
+  grid-template-columns: 154px minmax(360px, 1fr) 154px minmax(188px, 220px);
+  grid-template-areas: "left board right rail";
+  align-items: stretch;
+  gap: 0.7rem;
+  padding: 0.85rem;
+  min-height: 0;
+}
+.sidebar-left { grid-area: left; }
+.board-container { grid-area: board; }
+.sidebar-right { grid-area: right; }
+.meme-rail { grid-area: rail; }
+.sidebar { width: auto; padding: 0; gap: 0.7rem; }
+.player-panel {
+  min-width: 0;
+  background: linear-gradient(160deg, rgba(22, 38, 66, 0.96), rgba(11, 24, 45, 0.96));
+  border: 1px solid rgba(201, 220, 244, 0.2);
+  color: #edf5ff;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.22), inset 0 1px rgba(255, 255, 255, 0.06);
+  border-radius: 16px;
+}
+.player-panel.active-panel {
+  box-shadow: 0 0 0 2px var(--panel-color), 0 0 24px rgba(141, 240, 207, 0.22), 0 12px 28px rgba(0,0,0,0.26);
+}
+.panel-name { color: #f6f9ff; }
+.panel-tokens { color: #9db0c9; }
+.board-container {
+  padding: 0.7rem;
+  background: linear-gradient(145deg, rgba(24, 43, 73, 0.98), rgba(10, 24, 46, 0.98));
+  border: 1px solid rgba(141, 240, 207, 0.35);
+  border-radius: 22px;
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.32), inset 0 1px rgba(255,255,255,0.08);
+}
+#boardCanvas {
+  border: 6px solid #071426;
+  border-radius: 16px;
+  box-shadow: 0 0 0 2px rgba(141, 240, 207, 0.5), 0 12px 28px rgba(0,0,0,0.38);
+}
+.game-footer {
+  min-height: 76px;
+  background: rgba(7, 17, 33, 0.97);
+  border-top: 1px solid rgba(141, 240, 207, 0.28);
+  color: #edf5ff;
+  padding: 0.55rem 1rem;
+  box-shadow: 0 -10px 28px rgba(0,0,0,0.18);
+  z-index: 4;
+}
+.game-status { color: #8df0cf; }
+.dice-face { background: linear-gradient(145deg, #fffdf3, #ffe3b1); border-color: #ff735d; box-shadow: 4px 5px 0 #071426, 0 0 0 3px #ffd66b; }
+.dice-face .dot::after { background: #071426; border-color: #ff735d; }
+.btn-dice { background: #ff735d; border-color: #ffd66b; box-shadow: 0 4px 0 #b33b42; }
+.btn-dice:hover { background: #ff8a70; }
+.meme-rail { padding: 0.1rem 0 0.1rem 0.1rem; gap: 0.65rem; }
+.meme-rail-title { color: #dcecff; }
+.meme-rail-title b { color: #8df0cf; border-color: rgba(141,240,207,0.45); }
+.meme-rail-card, .meme-feed {
+  background: linear-gradient(160deg, rgba(22, 38, 66, 0.96), rgba(11, 24, 45, 0.96));
+  border-color: rgba(255, 214, 107, 0.55);
+  box-shadow: 0 10px 24px rgba(0,0,0,0.2);
+}
+.meme-rail-card strong { color: #fff3c8; }
+.meme-rail-card > span { color: #b8c8dc; }
+.meme-post-btn { background: #ff735d; border-color: #ffd66b; box-shadow: 0 4px 0 #b33b42; }
+.meme-post-btn:hover { background: #ff8a70; }
+.meme-feed-item strong { color: #fff3c8; }
+.meme-feed-item small { color: #9ee8d0; }
+.meme-picker {
+  background: rgba(8, 20, 38, 0.99);
+  border-color: #ffd66b;
+  box-shadow: 0 22px 70px rgba(0,0,0,0.56), 0 0 0 1px rgba(141,240,207,0.35);
+}
+.meme-picker-header strong { color: #ffd66b; }
+.meme-choice { background: rgba(255,255,255,0.06); border-color: rgba(141,240,207,0.28); }
+.meme-choice:hover, .meme-choice:focus-visible { background: #ff735d; border-color: #ffd66b; }
+
+@media (max-width: 1100px) and (min-width: 721px) {
+  .game-layout { grid-template-columns: 112px minmax(300px, 1fr) 112px 176px; gap: 0.45rem; padding: 0.55rem; }
+  .player-panel { padding: 0.45rem; }
+  .meme-rail { width: auto; }
+}
+
+@media (max-width: 720px) {
+  #screen-game {
+    height: auto;
+    min-height: 100dvh;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+  .game-header {
+    position: sticky;
+    top: 0;
+    min-height: 54px;
+    padding: 0.55rem 0.7rem;
+    z-index: 12;
+  }
+  .game-title { font-size: 0.78rem; letter-spacing: 2px; }
+  .room-info { font-size: 0.65rem; }
+  .game-layout {
+    flex: none;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas: "board board" "left right" "rail rail";
+    align-items: start;
+    gap: 0.55rem;
+    padding: 0.55rem;
+    min-height: 0;
+  }
+  .board-container {
+    width: 100%;
+    height: min(92vw, 520px);
+    min-height: 270px;
+    padding: 0.38rem;
+    border-radius: 18px;
+  }
+  #boardCanvas { width: 100%; height: 100%; border-width: 4px; border-radius: 12px; }
+  .sidebar {
+    width: auto;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.5rem;
+    padding: 0;
+  }
+  .player-panel {
+    min-height: 62px;
+    padding: 0.45rem 0.3rem;
+    border-radius: 13px;
+  }
+  .panel-name { font-size: 0.76rem; }
+  .panel-tokens { font-size: 0.68rem; }
+  .meme-rail {
+    width: 100%;
+    display: grid;
+    grid-template-columns: minmax(0, 0.88fr) minmax(0, 1.12fr);
+    grid-template-rows: auto auto auto auto;
+    grid-template-areas: "heading heading" "card feed-heading" "card feed" "post post";
+    gap: 0.45rem;
+    padding: 0.15rem 0 0.3rem;
+  }
+  .meme-rail > .meme-rail-title:first-child { grid-area: heading; }
+  .meme-rail-card { grid-area: card; min-height: 148px; padding: 0.7rem; }
+  .meme-feed-heading { grid-area: feed-heading; margin-top: 0; }
+  .meme-feed { grid-area: feed; min-height: 88px; max-height: 118px; overflow-y: auto; }
+  .meme-post-btn { grid-area: post; min-height: 44px; }
+  .meme-rail-emoji { font-size: 2.25rem; }
+  .meme-feed-item small { max-width: 160px; }
+  .game-footer {
+    position: sticky;
+    bottom: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    grid-template-areas: "status dice timer" "actions actions actions";
+    gap: 0.4rem;
+    min-height: 108px;
+    padding: 0.55rem 0.7rem 0.65rem;
+  }
+  .game-status { grid-area: status; min-width: 0; font-size: 0.72rem; line-height: 1.2; letter-spacing: 0.5px; }
+  .dice-area { grid-area: dice; gap: 0.25rem; }
+  .dice-face { width: 48px; height: 48px; padding: 5px; border-width: 3px; }
+  .dot::after { width: 7px; height: 7px; border-width: 1px; }
+  .btn-dice { padding: 0.42rem 0.62rem; font-size: 0.64rem; }
+  .dice-log { display: none; }
+  .timer-display { grid-area: timer; min-width: 34px; font-size: 0.9rem; }
+  .footer-buttons { grid-area: actions; justify-content: flex-end; }
+  .meme-moment { right: 0.55rem; bottom: 7.4rem; width: calc(100vw - 1.1rem); max-height: min(58vh, 460px); overflow-y: auto; }
+  .meme-picker { inset: 0.55rem; width: auto; max-height: none; padding: 0.75rem; }
+  .meme-picker-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); max-height: none; flex: 1; }
+  .meme-choice { min-height: 88px; padding: 0.6rem; }
+  .character-choices { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

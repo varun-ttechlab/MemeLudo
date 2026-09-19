@@ -17,6 +17,16 @@
     red: 'rgba(255,51,51,0.6)', blue: 'rgba(51,102,255,0.6)',
     yellow: 'rgba(255,215,0,0.6)', green: 'rgba(51,255,51,0.6)'
   };
+  const CHARACTER_DEFS = {
+    ranganna: { name: 'Ranganna', emoji: '🎙️', mark: 'R' },
+    jaggesh: { name: 'Jaggesh', emoji: '😏', mark: 'J' },
+    nagavalli: { name: 'Nagavalli', emoji: '👻', mark: 'N' },
+    shobraj: { name: 'Shobraj', emoji: '💃', mark: 'S' },
+    duniyaVijay: { name: 'Duniya Vijay', emoji: '😎', mark: 'V' },
+    upendra: { name: 'Upendra', emoji: '🧠', mark: 'U' },
+    pradeepEshwar: { name: 'Pradeep Eshwar', emoji: '🎤', mark: 'P' },
+    massAnna: { name: 'Mass Anna', emoji: '🔥', mark: 'M' }
+  };
   const PLAYER_START = { red: 0, blue: 13, yellow: 26, green: 39 };
   // Eight classic Ludo safe squares: four coloured starts plus four star cells.
   const SAFE_POSITIONS = [0, 8, 13, 21, 26, 34, 39, 47];
@@ -83,7 +93,7 @@
   let canvas, ctx, CELL, BOARD_PX;
 
   let state = {
-    roomId: null, networkUrl: null, playerColor: null, players: [], hostId: null,
+    roomId: null, networkUrl: null, playerColor: null, playerCharacter: 'ranganna', players: [], hostId: null,
     tokens: { red: [-1, -1, -1, -1], blue: [-1, -1, -1, -1], yellow: [-1, -1, -1, -1], green: [-1, -1, -1, -1] },
     finished: { red: 0, blue: 0, yellow: 0, green: 0 },
     turnOrder: [], currentTurnId: null, currentTurnName: null,
@@ -112,6 +122,7 @@
     ctx = canvas.getContext('2d');
     resizeCanvas();
     bindUI();
+    renderCharacterPicker();
     bindSocket();
     updateServerInfo();
     if (!socket) showServerWarning();
@@ -269,7 +280,7 @@
     if (!socket) { toast('Start the game server and open http://localhost:3000'); return; }
     const n = byId('playerName').value.trim() || 'Player';
     myName = n;
-    socket.emit('create_room', { playerName: n });
+    socket.emit('create_room', { playerName: n, character: getSelectedCharacter() });
   }
 
   function joinRoom() {
@@ -277,7 +288,7 @@
     const code = byId('roomCodeInput').value.trim().toUpperCase();
     if (!code) { toast('Enter a room code'); return; }
     myName = byId('playerName').value.trim() || 'Player';
-    socket.emit('join_room', { roomId: code, playerName: myName });
+    socket.emit('join_room', { roomId: code, playerName: myName, character: getSelectedCharacter() });
   }
 
   function copyCode() {
@@ -357,7 +368,7 @@
     if (!socket) return;
     socket.on('room_created', d => {
       reconnectSucceeded();
-      state.roomId = d.roomId; state.networkUrl = d.networkUrl || null; state.playerColor = d.playerColor;
+      state.roomId = d.roomId; state.networkUrl = d.networkUrl || null; state.playerColor = d.playerColor; state.playerCharacter = d.playerCharacter || 'ranganna';
       state.players = d.players; state.hostId = d.hostId;
       if (d.sessionToken) saveSession(d.sessionToken, d.roomId);
       showWaiting();
@@ -365,7 +376,7 @@
 
     socket.on('room_joined', d => {
       reconnectSucceeded();
-      state.roomId = d.roomId; state.networkUrl = d.networkUrl || null; state.playerColor = d.playerColor;
+      state.roomId = d.roomId; state.networkUrl = d.networkUrl || null; state.playerColor = d.playerColor; state.playerCharacter = d.playerCharacter || 'ranganna';
       state.players = d.players; state.hostId = d.hostId;
       if (d.sessionToken) saveSession(d.sessionToken, d.roomId);
       showWaiting();
@@ -437,6 +448,7 @@
       state.roomId = d.roomId;
       state.networkUrl = d.networkUrl || null;
       state.playerColor = d.playerColor;
+      state.playerCharacter = d.playerCharacter || 'ranganna';
       state.players = d.players;
       state.hostId = d.hostId;
       state.phase = d.phase;
@@ -708,6 +720,38 @@
     byId('btnStartGame').style.display = isHost && count >= 2 && count < 4 ? 'inline-block' : 'none';
   }
 
+  function getCharacterMeta(id) {
+    return CHARACTER_DEFS[id] || CHARACTER_DEFS.ranganna;
+  }
+
+  function getSelectedCharacter() {
+    const input = byId('characterChoice');
+    return input && CHARACTER_DEFS[input.value] ? input.value : 'ranganna';
+  }
+
+  function renderCharacterPicker() {
+    const grid = byId('characterChoices');
+    if (!grid) return;
+    const selected = getSelectedCharacter();
+    grid.innerHTML = Object.entries(CHARACTER_DEFS).map(([id, character]) =>
+      '<button class="character-choice' + (id === selected ? ' selected' : '') + '" type="button" data-character="' + id + '" aria-pressed="' + (id === selected) + '">' +
+        '<span class="character-choice-mark">' + character.mark + '</span>' +
+        '<span><strong>' + character.emoji + ' ' + character.name + '</strong><small>Pawn legend</small></span>' +
+      '</button>'
+    ).join('');
+    grid.querySelectorAll('.character-choice').forEach(button => {
+      button.onclick = function() {
+        const id = button.getAttribute('data-character');
+        byId('characterChoice').value = id;
+        grid.querySelectorAll('.character-choice').forEach(choice => {
+          const active = choice === button;
+          choice.classList.toggle('selected', active);
+          choice.setAttribute('aria-pressed', String(active));
+        });
+      };
+    });
+  }
+
   function renderMemePicker() {
     const grid = byId('memePickerGrid');
     if (!grid) return;
@@ -852,12 +896,14 @@
   function updatePlayerList() {
     const c = byId('playerList');
     c.innerHTML = state.players.map(p => {
+      const character = getCharacterMeta(p.character);
       const dc = p.connected === false ? ' player-disconnected' : '';
       const status = p.id === state.hostId ? 'HOST' : (p.connected === false ? 'DISCONNECTED' : 'READY');
       const sc = p.connected === false ? '#ff3333' : 'var(--cyan)';
       return '<div class="player-entry' + dc + '">' +
         '<div class="player-color-dot" style="background:' + COLOR_MAP[p.color] + ';box-shadow:0 0 8px ' + COLOR_GLOW[p.color] + '"></div>' +
-        '<span class="player-entry-name">' + p.name + '</span>' +
+        '<span class="player-entry-avatar">' + character.emoji + '</span>' +
+        '<span class="player-entry-name">' + p.name + '<small>' + character.name + '</small></span>' +
         '<span class="player-entry-status" style="color:' + sc + '">' + status + '</span>' +
       '</div>';
     }).join('');
@@ -916,7 +962,10 @@
       const ind = p.querySelector('.panel-indicator');
 
       if (player) {
+        const character = getCharacterMeta(player.character);
         nameEl.textContent = player.name;
+        const characterEl = p.querySelector('.panel-character');
+        if (characterEl) characterEl.textContent = character.emoji + ' ' + character.name;
         cntEl.textContent = state.finished[c] || 0;
         const isActive = state.currentTurnId ? state.currentTurnId === player.id : state.currentTurnName === player.name;
         const isDC = player.connected === false;
@@ -931,6 +980,8 @@
         }
       } else {
         nameEl.textContent = 'Waiting...';
+        const characterEl = p.querySelector('.panel-character');
+        if (characterEl) characterEl.textContent = '';
         cntEl.textContent = '0';
         p.classList.remove('active-panel');
         ind.style.background = '#444';
@@ -1161,6 +1212,8 @@
 
   function drawToken(color, x, y, idx, highlight) {
     const r = CELL * 0.31;
+    const player = state.players.find(p => p.color === color);
+    const character = getCharacterMeta(player && player.character);
     ctx.shadowColor = highlight ? '#19354a' : 'rgba(25,53,74,0.35)';
     ctx.shadowBlur = highlight ? r * 2.6 : r * 1.2;
     ctx.fillStyle = COLOR_MAP[color];
@@ -1187,6 +1240,18 @@
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(idx + 1, x, y + 0.5);
+    // A compact character badge makes the selected legend visible without
+    // sacrificing the traditional numbered pawns or color-coded board lanes.
+    ctx.fillStyle = '#fff8e8';
+    ctx.beginPath();
+    ctx.arc(x + r * 0.58, y - r * 0.58, r * 0.28, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#19354a';
+    ctx.lineWidth = Math.max(1, r * 0.08);
+    ctx.stroke();
+    ctx.fillStyle = '#19354a';
+    ctx.font = '900 ' + (r * 0.33) + 'px Segoe UI, sans-serif';
+    ctx.fillText(character.mark, x + r * 0.58, y - r * 0.58 + 0.5);
   }
 
   function drawLabels() {

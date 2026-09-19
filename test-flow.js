@@ -277,12 +277,14 @@ async function testTwoPlayerManualStart() {
 
   const room = await new Promise(resolve => {
     host.once('room_created', resolve);
-    host.emit('create_room', { playerName: 'Host' });
+    host.emit('create_room', { playerName: 'Host', character: 'jaggesh' });
   });
-  await new Promise(resolve => {
+  assert(room.players[0].character === 'jaggesh', 'Host character is stored in the room');
+  const joined = await new Promise(resolve => {
     guest.once('room_joined', resolve);
-    guest.emit('join_room', { roomId: room.roomId, playerName: 'Guest' });
+    guest.emit('join_room', { roomId: room.roomId, playerName: 'Guest', character: 'nagavalli' });
   });
+  assert(joined.players.some(p => p.name === 'Guest' && p.character === 'nagavalli'), 'Guest character is stored in the room');
 
   const starts = [0, 1].map((_, i) => new Promise(resolve => {
     (i === 0 ? host : guest).once('game_start', resolve);
@@ -291,6 +293,7 @@ async function testTwoPlayerManualStart() {
   const startData = await Promise.race([starts[0], sleep(3000).then(() => null)]);
   assert(!!startData, 'Host can manually start a 2-player room');
   assert(startData && startData.turnOrder.length === 2, 'Manual start preserves both players');
+  assert(startData && startData.players.some(p => p.character === 'jaggesh') && startData.players.some(p => p.character === 'nagavalli'), 'Game start includes selected characters');
   await Promise.race([starts[1], sleep(3000)]);
   const memePromise = new Promise(resolve => guest.once('meme_posted', resolve));
   host.emit('post_meme', { roomId: room.roomId, memeId: 8 });
