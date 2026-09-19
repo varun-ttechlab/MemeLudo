@@ -5,7 +5,13 @@
   const socket = !openedFromFile && typeof io === 'function' ? io() : null;
   const COLORS = ['red', 'blue', 'yellow', 'green'];
   const COLOR_MAP = {
-    red: '#FF3333', blue: '#3366FF', yellow: '#FFD700', green: '#33FF33'
+    // Dark pawn colors keep the pieces readable on their lighter board lanes.
+    red: '#A51D2D', blue: '#174EA6', yellow: '#9A6800', green: '#16794B'
+  };
+  const BOARD_COLOR_MAP = {
+    // Light lane/base colors preserve the four-color board without letting the
+    // board compete with the pawn silhouette or its number.
+    red: '#F5B4B7', blue: '#B4C9F5', yellow: '#FFE6A3', green: '#B7E5C7'
   };
   const COLOR_GLOW = {
     red: 'rgba(255,51,51,0.6)', blue: 'rgba(51,102,255,0.6)',
@@ -236,8 +242,9 @@
       }
     };
     // Bound here rather than at module scope: `canvas` is only assigned in init().
-    canvas.addEventListener('click', onCanvasClick);
-    canvas.addEventListener('mousemove', onCanvasMove);
+    // Pointer events cover mouse, touch, and stylus consistently on phones.
+    canvas.addEventListener('pointerup', onCanvasPointerUp);
+    canvas.addEventListener('pointermove', onCanvasMove);
 
     window.onresize = () => { resizeCanvas(); if (state.phase !== 'idle') draw(); };
   }
@@ -978,7 +985,7 @@
 
   function drawHomeBases() {
     for (const [color, q] of Object.entries(QUADRANTS)) {
-      const baseColor = COLOR_MAP[color];
+      const baseColor = BOARD_COLOR_MAP[color];
       ctx.fillStyle = baseColor;
       ctx.fillRect(q.cMin * CELL, q.rMin * CELL, 6 * CELL, 6 * CELL);
       ctx.strokeStyle = '#19354a';
@@ -1009,10 +1016,10 @@
     const x = 6 * CELL, y = 6 * CELL, size = 3 * CELL;
     const cx = x + size / 2, cy = y + size / 2;
     const triangles = [
-      { color: COLOR_MAP.red, points: [[x, y], [x + size, y], [cx, cy]] },
-      { color: COLOR_MAP.blue, points: [[x + size, y], [x + size, y + size], [cx, cy]] },
-      { color: COLOR_MAP.yellow, points: [[x + size, y + size], [x, y + size], [cx, cy]] },
-      { color: COLOR_MAP.green, points: [[x, y + size], [x, y], [cx, cy]] }
+      { color: BOARD_COLOR_MAP.red, points: [[x, y], [x + size, y], [cx, cy]] },
+      { color: BOARD_COLOR_MAP.blue, points: [[x + size, y], [x + size, y + size], [cx, cy]] },
+      { color: BOARD_COLOR_MAP.yellow, points: [[x + size, y + size], [x, y + size], [cx, cy]] },
+      { color: BOARD_COLOR_MAP.green, points: [[x, y + size], [x, y], [cx, cy]] }
     ];
     triangles.forEach(triangle => {
       ctx.fillStyle = triangle.color;
@@ -1038,7 +1045,7 @@
       const isSafe = SAFE_POSITIONS.includes(i);
       const startIdx = [0, 13, 26, 39].indexOf(i);
 
-      ctx.fillStyle = startIdx >= 0 ? COLOR_MAP[COLORS[startIdx]] : '#fffdf6';
+      ctx.fillStyle = startIdx >= 0 ? BOARD_COLOR_MAP[COLORS[startIdx]] : '#fffdf6';
       if (isSafe && startIdx < 0) ctx.fillStyle = '#ffe6a5';
       ctx.fillRect(c * CELL, r * CELL, CELL, CELL);
       ctx.strokeStyle = 'rgba(25,53,74,0.3)';
@@ -1057,7 +1064,7 @@
   function drawHomeColumns() {
     for (const [color, cols] of Object.entries(HOME_COLUMNS)) {
       cols.forEach(([r, c], i) => {
-        ctx.fillStyle = COLOR_MAP[color];
+        ctx.fillStyle = BOARD_COLOR_MAP[color];
         ctx.globalAlpha = 0.35 + i * 0.08;
         ctx.fillRect(c * CELL, r * CELL, CELL, CELL);
         ctx.globalAlpha = 1;
@@ -1090,6 +1097,9 @@
         result.push({ r: PATH[g][0], c: PATH[g][1], idx });
       } else if (pos === -1) {
         const t = PLAYER_HOME[color].tokens[idx];
+        result.push({ r: t[0], c: t[1], idx });
+      } else if (pos >= 52 && pos <= 56) {
+        const t = HOME_COLUMNS[color][pos - 52];
         result.push({ r: t[0], c: t[1], idx });
       }
     }
@@ -1219,13 +1229,17 @@
       } else if (pos === -1) {
         const t = PLAYER_HOME[color].tokens[idx];
         tr = t[0]; tc = t[1];
+      } else if (pos >= 52 && pos <= 56) {
+        const t = HOME_COLUMNS[color][pos - 52];
+        tr = t[0]; tc = t[1];
       } else continue;
       if (tr === row && tc === col) return idx;
     }
     return -1;
   }
 
-  function onCanvasClick(e) {
+  function onCanvasPointerUp(e) {
+    if (e.pointerType === 'touch') e.preventDefault();
     if (!state.myTurn || state.phase !== 'moving') return;
     const [r, c] = getCell(e);
     const idx = findToken(r, c);

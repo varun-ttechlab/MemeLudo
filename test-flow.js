@@ -48,6 +48,9 @@ async function testPageLoads() {
   assert(js.status === 200, 'game.js returns 200');
   assert(!js.body.includes('onkeydown'), 'No onkeydown assignments in JS (should use addEventListener)');
   assert(js.body.includes('addEventListener'), 'JS uses addEventListener');
+  assert(js.body.includes('onCanvasPointerUp'), 'Board uses pointer events for touch input');
+  assert(js.body.includes('pos >= 52 && pos <= 56'), 'Final-lane pawns are included in hit testing');
+  assert(css.body.includes('touch-action: none'), 'Board disables mobile gesture stealing');
 
   const socketIO = await httpGet('/socket.io/socket.io.js');
   assert(socketIO.status === 200, 'socket.io.js served');
